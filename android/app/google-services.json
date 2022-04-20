@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "89776794628",
+    "project_id": "getroomapp-1ae21",
+    "storage_bucket": "getroomapp-1ae21.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:89776794628:android:8cb14333bc3212c4dd9951",
+        "android_client_info": {
+          "package_name": "devranishubham1121.com.room_rental_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "89776794628-1rc3flh06kup11r8r99lp1nvj14dtmal.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjTpgprEmpVwKjeujQTqyKQZngCHDEqGs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "89776794628-1rc3flh06kup11r8r99lp1nvj14dtmal.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
