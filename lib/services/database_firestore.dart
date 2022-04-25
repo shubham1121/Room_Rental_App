@@ -98,6 +98,10 @@ class DatabaseService {
 
   Future? addRoomPost(PostData post) async {
     String uploadResult = await allPostCollection.add({
+      'roomDescription': post.roomDescription,
+      'kitchenCount': post.kitchenCount,
+      'latBathCount': post.latBathCount,
+      'areaOfRoom': post.areaOfRoom,
       'roomType': post.roomType,
       'address': post.ownAddress,
       'upldate': post.date,
@@ -126,6 +130,10 @@ class DatabaseService {
 
   Future? addRoommatePost(RoommatePostData post) async {
     String uploadResult = await allRoommatePostCollection.add({
+      'roomDescription': post.roomDescription,
+      'kitchenCount': post.kitchenCount,
+      'latBathCount': post.latBathCount,
+      'areaOfRoom': post.areaOfRoom,
       'roomType': post.roomType,
       'address': post.ownAddress,
       'upldate': post.date,
@@ -141,7 +149,7 @@ class DatabaseService {
       'beds': post.beds,
       'perPersonPrice': post.perPersonPrice,
       'price': post.orgPrice,
-      'myName': post.myName,
+      'postOwnerName': post.postOwnerName,
       'images': FieldValue.arrayUnion(post.uplImgLink),
     }).then((value) async {
       await allRoommatePostCollection.doc(value.id).update({
@@ -158,6 +166,10 @@ class DatabaseService {
   List<PostData?>? _ourPostListFromSnapshot(QuerySnapshot snapshot) {
     return snapshot.docs.map((doc) {
       PostData postData = PostData(
+        roomDescription: doc.get('roomDescription'),
+        kitchenCount: doc.get('kitchenCount'),
+        latBathCount: doc.get('latBathCount'),
+        areaOfRoom: doc.get('areaOfRoom'),
         city: doc.get('city'),
         state: doc.get('state'),
         pinCode: doc.get('pinCode'),
@@ -177,12 +189,12 @@ class DatabaseService {
       return postData;
     }).toList();
   }
-
+  //Get all room posts
   Stream<List<PostData?>?> get allPostData => allPostCollection
       .orderBy("upldate")
       .snapshots()
       .map((snapshot) => _ourPostListFromSnapshot(snapshot));
-
+  //Get all current user roomm posts
   Stream<List<PostData?>?> get userPostData => allPostCollection
       .where('userId', isEqualTo: uid)
       .orderBy('upldate')
@@ -196,8 +208,12 @@ class DatabaseService {
       debugPrint(uid);
       debugPrint(doc.get('userId'));
       RoommatePostData postData = RoommatePostData(
+        roomDescription: doc.get('roomDescription'),
+        areaOfRoom: doc.get('areaOfRoom'),
+        latBathCount: doc.get('latBathCount'),
+        kitchenCount: doc.get('kitchenCount'),
         perPersonPrice: doc.get('perPersonPrice'),
-        myName: doc.get('myName'),
+        postOwnerName: doc.get('postOwnerName'),
         city: doc.get('city'),
         state: doc.get('state'),
         pinCode: doc.get('pinCode'),
@@ -217,13 +233,13 @@ class DatabaseService {
       return postData;
     }).toList();
   }
-
+ //Get all roommate posts
   Stream<List<RoommatePostData?>?> get allRoommatePostData =>
       allRoommatePostCollection
           .orderBy('upldate')
           .snapshots()
           .map((snapshot) => _ourRoommatePostListFromSnapshot(snapshot));
-
+ //Get all current user roommate posts
   Stream<List<RoommatePostData?>?> get userRoommatePostData =>
       allRoommatePostCollection
           .where('userId', isEqualTo: uid)
@@ -242,7 +258,7 @@ class DatabaseService {
         .catchError((error) => "Error");
     return null;
   }
-
+  //Delete Roommate Post
   Future? deleteRoommatePost(RoommatePostData postData) async {
     for (var pD in postData.uplImgLink) {
       await FirebaseStorage.instance.refFromURL(pD).delete();

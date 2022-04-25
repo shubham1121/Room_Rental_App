@@ -5,15 +5,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:room_rental_app/services/firebase_auth.dart';
 import 'package:room_rental_app/utils/provider_location.dart';
 import 'package:room_rental_app/utils/wrapper.dart';
+import 'package:flutter/services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   await Firebase.initializeApp();
-  runApp( const MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-   const MyApp({Key? key}) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +28,10 @@ class MyApp extends StatelessWidget {
           initialData: null,
         ),
         ChangeNotifierProvider(create: (context) => ProviderLocation()),
-
       ],
       child: MaterialApp(
         theme: ThemeData(
+          fontFamily: 'Nunito',
           primarySwatch: Colors.indigo,
         ),
         home: const Wrapper(),

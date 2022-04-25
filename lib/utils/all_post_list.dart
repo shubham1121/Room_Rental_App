@@ -33,9 +33,12 @@ class _AllPostListState extends State<AllPostList> {
                 scrollDirection: Axis.vertical,
                 itemCount:allNonNullPostList.length,
                 itemBuilder: (context, index) {
-                  return PostCard(
-                    roommatePostData: null,
-                      postData: allNonNullPostList[index], isAllPost: true);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                    child: PostCard(
+                      roommatePostData: null,
+                        postData: allNonNullPostList[index], isAllPost: true),
+                  );
                 },
               );
   }

@@ -1,11 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:room_rental_app/models/our_user.dart';
 import 'package:room_rental_app/models/post_data.dart';
 import 'package:room_rental_app/models/roommate_post.dart';
 import 'package:room_rental_app/services/database_firestore.dart';
 import 'package:room_rental_app/services/firebase_auth.dart';
+import 'package:room_rental_app/utils/constants.dart';
+import 'package:room_rental_app/utils/customised_app_bar.dart';
 
 import '../utils/my_post.dart';
 
@@ -24,11 +27,11 @@ class _MyProfilePageState extends State<MyProfilePage> {
     return MultiProvider(
       providers: [
         StreamProvider<List<PostData?>?>.value(
-        catchError: (_, err) {
-      debugPrint(err.toString() + 'PostData');
-      debugPrint('got List<PostData>');
-      return null;
-    },
+          catchError: (_, err) {
+            debugPrint(err.toString() + 'PostData');
+            debugPrint('got List<PostData>');
+            return null;
+          },
           value: DatabaseService(user!.uid).userPostData,
           initialData: null,
         ),
@@ -40,7 +43,6 @@ class _MyProfilePageState extends State<MyProfilePage> {
           },
           value: DatabaseService(user.uid).userRoommatePostData,
           initialData: null,
-
         ),
         StreamProvider<List<OurUser?>?>.value(
           value: DatabaseService(user.uid).ourUserProfileData,
@@ -52,23 +54,9 @@ class _MyProfilePageState extends State<MyProfilePage> {
           },
         )
       ],
-      child: SafeArea(
+      child: const SafeArea(
         child: Scaffold(
-          appBar: AppBar(
-            // automaticallyImplyLeading: false,
-            title: const Text('Profile'),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    _authService.logout();
-                  });
-                },
-                icon: const Icon(Icons.logout),
-              ),
-            ],
-          ),
-          body: const MyPostList(),
+          body: MyPostList(),
         ),
       ),
     );

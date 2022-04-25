@@ -8,12 +8,16 @@ import 'package:room_rental_app/models/location.dart';
 import 'package:room_rental_app/models/our_user.dart';
 import 'package:room_rental_app/models/post_data.dart';
 import 'package:room_rental_app/models/roommate_post.dart';
+import 'package:room_rental_app/screens/all_room_post_page.dart';
 import 'package:room_rental_app/services/database_firestore.dart';
 import 'package:room_rental_app/services/firebase_auth.dart';
 import 'package:room_rental_app/services/location_services.dart';
+import 'package:room_rental_app/utils/constants.dart';
+import 'package:room_rental_app/utils/customised_app_bar.dart';
 import 'package:room_rental_app/utils/device_size.dart';
 import 'package:room_rental_app/utils/loading.dart';
 import 'package:room_rental_app/utils/provider_location.dart';
+import 'package:room_rental_app/utils/wrapper.dart';
 
 import 'home_page.dart';
 
@@ -28,7 +32,6 @@ class CreatePostPage extends StatefulWidget {
 
 class _CreatePostPageState extends State<CreatePostPage> {
   late String userid;
-  final AuthService _authService = AuthService();
   final LocationServices _locationServices = LocationServices();
   bool uploading = false;
   bool isFurnished = false;
@@ -48,6 +51,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
   TextEditingController postOwnerContact = TextEditingController();
   TextEditingController tenantContact = TextEditingController();
   TextEditingController perPersonPrice = TextEditingController();
+  TextEditingController areaOfRoom = TextEditingController();
+  TextEditingController kitchenCount = TextEditingController();
+  TextEditingController latBathCount = TextEditingController();
+  TextEditingController roomDescription = TextEditingController();
   final _postFormKey = GlobalKey<FormState>();
   final List<File> _image = [];
   List<String> uplImgLink = [];
@@ -87,6 +94,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
     tenantContact.dispose();
     tenantName.dispose();
     perPersonPrice.dispose();
+    areaOfRoom.dispose();
+    kitchenCount.dispose();
+    latBathCount.dispose();
+    roomDescription.dispose();
     super.dispose();
   }
 
@@ -138,6 +149,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
       uploading = true;
     });
     PostData post = PostData(
+      roomDescription: roomDescription.text,
+      kitchenCount: int.parse(kitchenCount.text),
+      latBathCount: int.parse(latBathCount.text),
+      areaOfRoom: int.parse(areaOfRoom.text),
       state: postState.text,
       city: postCity.text,
       pinCode: postPinCode.text,
@@ -154,7 +169,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     );
     if (_image.isEmpty) {
       post.uplImgLink.add(
-          'https://firebasestorage.googleapis.com/v0/b/getroomapp-1ae21.appspot.com/o/images%2Fno_image_available.jpg?alt=media&token=46b5061b-9822-4012-9ea1-9a6f726b2c8e');
+          'https://firebasestorage.googleapis.com/v0/b/getroomapp-1ae21.appspot.com/o/images%2Fno_image_available.jpg?alt=media&token=ec9f783f-9fd3-4944-a244-898860aebf1b');
     } else {
       for (var img in _image) {
         String? result = await _databaseService.uploadImageFirebaseStorage(img);
@@ -179,7 +194,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
       uploading = true;
     });
     RoommatePostData post = RoommatePostData(
-      myName: tenantName.text,
+      roomDescription: roomDescription.text,
+      kitchenCount: int.parse(kitchenCount.text),
+      latBathCount: int.parse(latBathCount.text),
+      areaOfRoom: int.parse(areaOfRoom.text),
+      postOwnerName: tenantName.text,
       state: postState.text,
       city: postCity.text,
       pinCode: postPinCode.text,
@@ -228,648 +247,1579 @@ class _CreatePostPageState extends State<CreatePostPage> {
         Provider.of<List<OurUser?>?>(context);
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: const Text('Create Post'),
-          actions: [
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  _authService.logout();
-                });
-              },
-              icon: const Icon(Icons.logout),
-            ),
-          ],
-        ),
-        body: getOrientation(context) == Orientation.portrait
-            ? uploading
-                ? Loading(true)
-                : currentUserProfile == null ? Loading(false) :
-        currentUserProfile[0] == null ? Loading(false) : ListView(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 15, horizontal: 25),
-                        child: Column(
-                          children: [
-                            !currentUserProfile[0]!.isHomeOwner ? const SizedBox(
-                              height: 0,
-                              width: 0,
-                            )  : const Text(
-                              'Room Post',
-                              style: TextStyle(
-                                color:Colors.indigo,
-                              ),
-                            ),
-                            currentUserProfile[0]!.isHomeOwner ? const SizedBox(
-                              height: 0,
-                              width: 0,
-                            )  : const Text(
-                              'Roommate Post',
-                              style: TextStyle(
-                                color: Colors.indigo,
-                              ),
-                            ),
-                            currentUserProfile[0]!.isHomeOwner ?
-                            Form(
-                                    key: _postFormKey,
-                                    child: Column(
-                                      children: [
-                                        TextFormField(
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return "Room Type Can't be Empty";
-                                            } else {
-                                              return null;
-                                            }
-                                          },
-                                          style: TextStyle(
-                                            fontSize:
-                                                displayWidth(context) * 0.045,
-                                          ),
-                                          autofocus: false,
-                                          controller: postRoomType,
-                                          decoration: const InputDecoration(
-                                            hintText:
-                                                'Single Room / Double Room',
-                                            labelText: 'Room Type',
-                                          ),
-                                        ),
-                                        TextFormField(
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return "Room Owner Name Can't be Empty";
-                                            } else {
-                                              return null;
-                                            }
-                                          },
-                                          style: TextStyle(
-                                            fontSize:
-                                                displayWidth(context) * 0.045,
-                                          ),
-                                          autofocus: false,
-                                          controller: postOwnerName,
-                                          decoration: const InputDecoration(
-                                            hintText: 'Owner\'s Name',
-                                            labelText: 'Owner',
-                                          ),
-                                        ),
-                                        TextFormField(
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return "Mobile Number Can't be Empty";
-                                            } else {
-                                              return null;
-                                            }
-                                          },
-                                          style: TextStyle(
-                                            fontSize:
-                                                displayWidth(context) * 0.045,
-                                          ),
-                                          autofocus: false,
-                                          keyboardType: TextInputType.number,
-                                          controller: postOwnerContact,
-                                          decoration: const InputDecoration(
-                                            hintText: 'Owner\'s Contact Number',
-                                            labelText: 'Contact',
-                                          ),
-                                        ),
-                                        TextFormField(
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return "City Can't be Empty";
-                                            } else {
-                                              return null;
-                                            }
-                                          },
-                                          style: TextStyle(
-                                            fontSize:
-                                                displayWidth(context) * 0.045,
-                                          ),
-                                          autofocus: false,
-                                          controller: postCity,
-                                          decoration: const InputDecoration(
-                                            hintText: 'Delhi',
-                                            labelText: 'City',
-                                          ),
-                                        ),
-                                        TextFormField(
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return "State Can't be Empty";
-                                            } else {
-                                              return null;
-                                            }
-                                          },
-                                          style: TextStyle(
-                                            fontSize:
-                                                displayWidth(context) * 0.045,
-                                          ),
-                                          autofocus: false,
-                                          controller: postState,
-                                          decoration: const InputDecoration(
-                                            hintText: 'Goa',
-                                            labelText: 'State',
-                                          ),
-                                        ),
-                                        TextFormField(
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return "Address Can't be Empty";
-                                            } else {
-                                              return null;
-                                            }
-                                          },
-                                          style: TextStyle(
-                                            fontSize:
-                                                displayWidth(context) * 0.045,
-                                          ),
-                                          autofocus: false,
-                                          controller: postAddress,
-                                          decoration: const InputDecoration(
-                                            hintText: 'HouseNo, locality',
-                                            labelText: 'Address',
-                                          ),
-                                        ),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            TextFormField(
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return "PinCode Can't be Empty";
-                                                } else {
-                                                  return null;
-                                                }
-                                              },
-                                              style: TextStyle(
-                                                fontSize:
-                                                    displayWidth(context) *
-                                                        0.045,
+        body: uploading
+            ? Loading(true)
+            : currentUserProfile == null
+                ? Loading(false)
+                : currentUserProfile[0] == null
+                    ? Loading(false)
+                    : SingleChildScrollView(
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 15, vertical: 0),
+                          child: Column(
+                            children: [
+                              currentUserProfile[0]!.isHomeOwner
+                                  ? const CustomisedAppBar(
+                                      mainHeading: 'Room Posts',
+                                      subHeading: 'Create Post For Rooms',isProfileSection: false,)
+                                  : const CustomisedAppBar(
+                                      mainHeading: 'Roommate Posts',
+                                      subHeading: 'Create Post For Roommates',isProfileSection: false,),
+                              currentUserProfile[0]!.isHomeOwner
+                                  ?
+                                  //Create Room Posts
+                                  Form(
+                                      key: _postFormKey,
+                                      child: Column(
+                                        children: [
+                                          TextFormField(
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return "Room Type Can't be Empty";
+                                              } else {
+                                                return null;
+                                              }
+                                            },
+                                            style: TextStyle(
+                                              fontSize:
+                                              formElementsSize(
+                                                  context),
+                                            ),
+                                            autofocus: false,
+                                            controller: postRoomType,
+                                            decoration:
+                                            InputDecoration(
+                                              enabledBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
                                               ),
-                                              autofocus: false,
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              controller: postPinCode,
-                                              decoration: InputDecoration(
-                                                constraints:
-                                                    BoxConstraints.tightFor(
-                                                        width: displayWidth(
-                                                                context) *
-                                                            0.4),
-                                                hintText: '474001',
-                                                labelText: 'Pincode',
+                                              focusedBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
+                                              ),
+                                              hintText: 'Single Room / Double Room',
+                                              hintStyle: TextStyle(
+                                                fontSize:
+                                                formElementsSize(context),
+                                              ),
+                                              labelText: 'Room Type',
+                                              labelStyle: TextStyle(
+                                                color: Colors.indigo,
+                                                fontSize:
+                                                formElementsSize(context),
+                                                fontWeight: FontWeight.w500,
                                               ),
                                             ),
-                                            TextFormField(
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return "Number of Beds Can't be Empty";
-                                                } else if (int.parse(value) <=
-                                                    0) {
-                                                  return "Should have atleast 1 bed";
-                                                } else {
-                                                  return null;
-                                                }
-                                              },
-                                              style: TextStyle(
-                                                fontSize:
-                                                    displayWidth(context) *
-                                                        0.045,
+                                          ),
+                                          TextFormField(
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return "Room Owner Name Can't be Empty";
+                                              } else {
+                                                return null;
+                                              }
+                                            },
+                                            style: TextStyle(
+                                              fontSize:
+                                              formElementsSize(
+                                                  context),
+                                            ),
+                                            autofocus: false,
+                                            controller: postOwnerName,
+                                            decoration:
+                                            InputDecoration(
+                                              enabledBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
                                               ),
-                                              autofocus: false,
-                                              controller: postBeds,
-                                              decoration: InputDecoration(
-                                                constraints:
-                                                    BoxConstraints.tightFor(
-                                                        width: displayWidth(
-                                                                context) *
-                                                            0.4),
-                                                hintText: '2',
-                                                labelText: 'Beds',
+                                              focusedBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
+                                              ),
+                                              hintText: 'Owner\'s Name',
+                                              hintStyle: TextStyle(
+                                                fontSize:
+                                                formElementsSize(context),
+                                              ),
+                                              labelText: 'Owner',
+                                              labelStyle: TextStyle(
+                                                color: Colors.indigo,
+                                                fontSize:
+                                                formElementsSize(context),
+                                                fontWeight: FontWeight.w500,
                                               ),
                                             ),
-                                          ],
-                                        ),
-                                        TextFormField(
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return "Price Can't be Empty";
-                                            } else if (int.parse(value) <= 0) {
-                                              return "Price should be Greater than 0";
-                                            } else {
-                                              return null;
-                                            }
-                                          },
-                                          style: TextStyle(
-                                            fontSize:
-                                                displayWidth(context) * 0.045,
                                           ),
-                                          autofocus: false,
-                                          controller: postPrice,
-                                          decoration: const InputDecoration(
-                                            prefixText: "\u20B9",
-                                            suffixText: "/Month",
-                                            hintText: '4500',
-                                            labelText: 'Price',
+                                          TextFormField(
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return "Mobile Number Can't be Empty";
+                                              } else {
+                                                return null;
+                                              }
+                                            },
+                                            style: TextStyle(
+                                              fontSize:
+                                              formElementsSize(
+                                                  context),
+                                            ),
+                                            autofocus: false,
+                                            keyboardType:
+                                            TextInputType
+                                                .number,
+                                            controller:
+                                            postOwnerContact,
+                                            decoration:
+                                            InputDecoration(
+                                              enabledBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
+                                              ),
+                                              focusedBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
+                                              ),
+                                              hintText: 'Owner\'s Contact Number ',
+                                              hintStyle: TextStyle(
+                                                fontSize:
+                                                formElementsSize(context),
+                                              ),
+                                              labelText: 'Contact',
+                                              labelStyle: TextStyle(
+                                                color: Colors.indigo,
+                                                fontSize:
+                                                formElementsSize(context),
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              'Room Furnished',
-                                              style: TextStyle(
+                                          TextFormField(
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return "City Can't be Empty";
+                                              } else {
+                                                return null;
+                                              }
+                                            },
+                                            style: TextStyle(
+                                              fontSize:
+                                              formElementsSize(
+                                                  context),
+                                            ),
+                                            autofocus: false,
+                                            controller: postCity,
+                                            decoration:
+                                            InputDecoration(
+                                              enabledBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
+                                              ),
+                                              focusedBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
+                                              ),
+                                              hintText: 'Delhi',
+                                              hintStyle: TextStyle(
+                                                fontSize:
+                                                formElementsSize(context),
+                                              ),
+                                              labelText: 'City',
+                                              labelStyle: TextStyle(
+                                                color: Colors.indigo,
+                                                fontSize:
+                                                formElementsSize(context),
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                          TextFormField(
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return "State Can't be Empty";
+                                              } else {
+                                                return null;
+                                              }
+                                            },
+                                            style: TextStyle(
+                                              fontSize:
+                                              formElementsSize(
+                                                  context),
+                                            ),
+                                            autofocus: false,
+                                            controller: postState,
+                                            decoration:
+                                            InputDecoration(
+                                              enabledBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
+                                              ),
+                                              focusedBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
+                                              ),
+                                              hintText: 'Madhya Pradesh',
+                                              hintStyle: TextStyle(
+                                                fontSize:
+                                                formElementsSize(context),
+                                              ),
+                                              labelText: 'State',
+                                              labelStyle: TextStyle(
+                                                color: Colors.indigo,
+                                                fontSize:
+                                                formElementsSize(context),
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                          TextFormField(
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return "Address Can't be Empty";
+                                              } else {
+                                                return null;
+                                              }
+                                            },
+                                            style: TextStyle(
+                                              fontSize:
+                                              formElementsSize(
+                                                  context),
+                                            ),
+                                            autofocus: false,
+                                            controller: postAddress,
+                                            decoration:
+                                            InputDecoration(
+                                              enabledBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
+                                              ),
+                                              focusedBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
+                                              ),
+                                              hintText: 'House Number, Locality',
+                                              hintStyle: TextStyle(
+                                                fontSize:
+                                                formElementsSize(context),
+                                              ),
+                                              labelText: 'Address',
+                                              labelStyle: TextStyle(
+                                                color: Colors.indigo,
+                                                fontSize:
+                                                formElementsSize(context),
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                          TextFormField(
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return "Room Description Can't be Empty";
+                                              } else {
+                                                return null;
+                                              }
+                                            },
+                                            style: TextStyle(
+                                              fontSize:
+                                              formElementsSize(
+                                                  context),
+                                            ),
+                                            autofocus: false,
+                                            controller: roomDescription,
+                                            decoration:
+                                            InputDecoration(
+                                              enabledBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
+                                              ),
+                                              focusedBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.indigo),
+                                              ),
+                                              hintText: 'Facilities Available with Room',
+                                              hintStyle: TextStyle(
+                                                fontSize:
+                                                formElementsSize(context),
+                                              ),
+                                              labelText: 'Room Description',
+                                              labelStyle: TextStyle(
+                                                color: Colors.indigo,
+                                                fontSize:
+                                                formElementsSize(context),
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                          Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment
+                                                .spaceBetween,
+                                            children: [
+                                              TextFormField(
+                                                validator: (value) {
+                                                  if (value == null ||
+                                                      value.isEmpty) {
+                                                    return "PinCode Can't be Empty";
+                                                  } else {
+                                                    return null;
+                                                  }
+                                                },
+                                                style: TextStyle(
                                                   fontSize:
-                                                      displayWidth(context) *
-                                                          0.045,
-                                                  color: Colors.grey.shade600),
-                                            ),
-                                            Switch(
-                                              value: isFurnished,
-                                              onChanged: (value) =>
-                                                  setState(() {
-                                                isFurnished = !isFurnished;
-                                              }),
-                                            ),
-                                          ],
-                                        ),
-                                        _image.isEmpty
-                                            ? const SizedBox(
-                                                height: 0,
-                                                width: 0,
-                                              )
-                                            : GridView.builder(
-                                                shrinkWrap: true,
-                                                scrollDirection: Axis.vertical,
-                                                itemCount: _image.length,
-                                                gridDelegate:
-                                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                                  crossAxisCount: 3,
+                                                  formElementsSize(
+                                                      context),
                                                 ),
-                                                itemBuilder: (context, index) {
-                                                  return Container(
-                                                    margin:
-                                                        const EdgeInsets.all(3),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10),
-                                                      image: DecorationImage(
-                                                        image: FileImage(
-                                                            _image[index]),
-                                                        fit: BoxFit.cover,
+                                                autofocus: false,
+                                                keyboardType:
+                                                TextInputType
+                                                    .number,
+                                                controller: postPinCode,
+                                                decoration:
+                                                InputDecoration(
+                                                  constraints: BoxConstraints
+                                                      .tightFor(
+                                                      width: displayWidth(
+                                                          context) *
+                                                          0.4),
+                                                  enabledBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.indigo),
+                                                  ),
+                                                  focusedBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.indigo),
+                                                  ),
+                                                  hintText: '474001',
+                                                  hintStyle: TextStyle(
+                                                    fontSize:
+                                                    formElementsSize(context),
+                                                  ),
+                                                  labelText: 'PinCode',
+                                                  labelStyle: TextStyle(
+                                                    color: Colors.indigo,
+                                                    fontSize:
+                                                    formElementsSize(context),
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                              TextFormField(
+                                                validator: (value) {
+                                                  if (value == null ||
+                                                      value.isEmpty) {
+                                                    return "Number of Beds Can't be Empty";
+                                                  } else if (int.parse(
+                                                      value) <=
+                                                      0) {
+                                                    return "Should have atleast 1 bed";
+                                                  } else {
+                                                    return null;
+                                                  }
+                                                },
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  formElementsSize(
+                                                      context),
+                                                ),
+                                                autofocus: false,
+                                                controller: postBeds,
+                                                decoration: InputDecoration(
+                                                  constraints: BoxConstraints
+                                                      .tightFor(
+                                                      width: displayWidth(
+                                                          context) *
+                                                          0.4),
+                                                  enabledBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.indigo),
+                                                  ),
+                                                  focusedBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.indigo),
+                                                  ),
+                                                  hintText: '1',
+                                                  hintStyle: TextStyle(
+                                                    fontSize:
+                                                    formElementsSize(context),
+                                                  ),
+                                                  labelText: 'Beds',
+                                                  labelStyle: TextStyle(
+                                                    color: Colors.indigo,
+                                                    fontSize:
+                                                    formElementsSize(context),
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment
+                                                .spaceBetween,
+                                            children: [
+                                              TextFormField(
+                                                validator: (value) {
+                                                  if (value == null ||
+                                                      value.isEmpty) {
+                                                    return "Cant be Empty";
+                                                  }
+                                                  else if( value == '0' )
+                                                  {
+                                                    return 'Can\'t be Zero';
+                                                  }
+                                                  else {
+                                                    return null;
+                                                  }
+                                                },
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  formElementsSize(
+                                                      context),
+                                                ),
+                                                autofocus: false,
+                                                keyboardType:
+                                                TextInputType
+                                                    .number,
+                                                controller: kitchenCount,
+                                                decoration:
+                                                InputDecoration(
+                                                  constraints: BoxConstraints
+                                                      .tightFor(
+                                                      width: displayWidth(
+                                                          context) *
+                                                          0.4),
+                                                  enabledBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.indigo),
+                                                  ),
+                                                  focusedBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.indigo),
+                                                  ),
+                                                  hintText: '2',
+                                                  hintStyle: TextStyle(
+                                                    fontSize:
+                                                    formElementsSize(context),
+                                                  ),
+                                                  labelText: 'Kitchen',
+                                                  labelStyle: TextStyle(
+                                                    color: Colors.indigo,
+                                                    fontSize:
+                                                    formElementsSize(context),
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                              TextFormField(
+                                                validator: (value) {
+                                                  if (value == null ||
+                                                      value.isEmpty) {
+                                                    return "Cant be Empty";
+                                                  }
+                                                  else if( value == '0' )
+                                                  {
+                                                    return 'Can\'t be Zero';
+                                                  }
+                                                  else {
+                                                    return null;
+                                                  }
+                                                },
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  formElementsSize(
+                                                      context),
+                                                ),
+                                                autofocus: false,
+                                                keyboardType:
+                                                TextInputType
+                                                    .number,
+                                                controller: latBathCount,
+                                                decoration:
+                                                InputDecoration(
+                                                  constraints: BoxConstraints
+                                                      .tightFor(
+                                                      width: displayWidth(
+                                                          context) *
+                                                          0.4),
+                                                  enabledBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.indigo),
+                                                  ),
+                                                  focusedBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.indigo),
+                                                  ),
+                                                  hintText: '2',
+                                                  hintStyle: TextStyle(
+                                                    fontSize:
+                                                    formElementsSize(context),
+                                                  ),
+                                                  labelText: 'Washroom',
+                                                  labelStyle: TextStyle(
+                                                    color: Colors.indigo,
+                                                    fontSize:
+                                                    formElementsSize(context),
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment
+                                                .spaceBetween,
+                                            children: [
+                                              TextFormField(
+                                                validator: (value) {
+                                                  if (value == null ||
+                                                      value.isEmpty) {
+                                                    return "Price Can't be Empty";
+                                                  } else if (int.parse(
+                                                      value) <=
+                                                      0) {
+                                                    return "Price should be Greater than 0";
+                                                  } else {
+                                                    return null;
+                                                  }
+                                                },
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  formElementsSize(
+                                                      context),
+                                                ),
+                                                autofocus: false,
+                                                controller: postPrice,
+                                                decoration:
+                                                InputDecoration(
+                                                  constraints: BoxConstraints
+                                                      .tightFor(
+                                                      width: displayWidth(
+                                                          context) *
+                                                          0.4),
+                                                  prefixText: "\u20B9",
+                                                  suffixText: "/Month",
+                                                  hintText: '4500',
+                                                  labelText: 'Price',
+                                                  enabledBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.indigo),
+                                                  ),
+                                                  focusedBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.indigo),
+                                                  ),
+                                                  hintStyle: TextStyle(
+                                                    fontSize:
+                                                    formElementsSize(context),
+                                                  ),
+                                                  labelStyle: TextStyle(
+                                                    color: Colors.indigo,
+                                                    fontSize:
+                                                    formElementsSize(context),
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                              TextFormField(
+                                                validator: (value) {
+                                                  if (value == null ||
+                                                      value.isEmpty) {
+                                                    return "Cant be Empty";
+                                                  }
+                                                  else if( value == '0' )
+                                                  {
+                                                    return 'Can\'t be Zero';
+                                                  }
+                                                  else {
+                                                    return null;
+                                                  }
+                                                },
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  formElementsSize(
+                                                      context),
+                                                ),
+                                                autofocus: false,
+                                                keyboardType:
+                                                TextInputType
+                                                    .number,
+                                                controller: areaOfRoom,
+                                                decoration:
+                                                InputDecoration(
+                                                  constraints: BoxConstraints
+                                                      .tightFor(
+                                                      width: displayWidth(
+                                                          context) *
+                                                          0.4),
+                                                  enabledBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.indigo),
+                                                  ),
+                                                  focusedBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.indigo),
+                                                  ),
+                                                  hintText: '500',
+                                                  suffixText: "Sq. ft",
+                                                  hintStyle: TextStyle(
+                                                    fontSize:
+                                                    formElementsSize(context),
+                                                  ),
+                                                  labelText: 'Room Area',
+                                                  labelStyle: TextStyle(
+                                                    color: Colors.indigo,
+                                                    fontSize:
+                                                    formElementsSize(context),
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment
+                                                .spaceBetween,
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment
+                                                .center,
+                                            children: [
+                                              Text(
+                                                'Is Room Furnished?',
+                                                style: TextStyle(
+                                                    fontSize:
+                                                    formElementsSize(
+                                                        context),
+                                                    color: isFurnished
+                                                        ? Colors.indigo
+                                                        : Colors.grey
+                                                        .shade600),
+                                              ),
+                                              Switch(
+                                                value: isFurnished,
+                                                onChanged: (value) =>
+                                                    setState(() {
+                                                      isFurnished =
+                                                      !isFurnished;
+                                                    }),
+                                              ),
+                                            ],
+                                          ),
+                                          _image.isEmpty
+                                              ? const SizedBox(
+                                                  height: 0,
+                                                  width: 0,
+                                                )
+                                              : GridView.builder(
+                                                  shrinkWrap: true,
+                                                  scrollDirection:
+                                                      Axis.vertical,
+                                                  itemCount: _image.length,
+                                                  gridDelegate:
+                                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                                    crossAxisCount: 3,
+                                                  ),
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    return Container(
+                                                      margin:
+                                                          const EdgeInsets.all(
+                                                              3),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                        image: DecorationImage(
+                                                          image: FileImage(
+                                                              _image[index]),
+                                                          fit: BoxFit.cover,
+                                                        ),
                                                       ),
+                                                    );
+                                                  },
+                                                ),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              ElevatedButton(
+                                                style: ElevatedButton
+                                                    .styleFrom(
+                                                  primary:
+                                                  darkBlueColor,
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                      BorderRadius
+                                                          .circular(
+                                                          10)),
+                                                ),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    chooseImage();
+                                                  });
+                                                },
+                                                child:  Text(
+                                                  'Add Images',
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                    formElementsSize(
+                                                        context),
+                                                  ),
+                                                ),
+                                              ),
+                                              ElevatedButton(
+                                                style: ElevatedButton
+                                                    .styleFrom(
+                                                  primary:
+                                                  darkBlueColor,
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                      BorderRadius
+                                                          .circular(
+                                                          10)),
+                                                ),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    autoFillLocation();
+                                                  });
+                                                },
+                                                child:  Text(
+                                                  'Fill Location',
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                    formElementsSize(
+                                                        context),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          ElevatedButton(
+                                            style: ElevatedButton
+                                                .styleFrom(
+                                              primary: darkBlueColor,
+                                              shape:
+                                              RoundedRectangleBorder(
+                                                  borderRadius:
+                                                  BorderRadius
+                                                      .circular(
+                                                      10)),
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                validatePost();
+                                                if (isValid) {
+                                                  uploadRoomFile().whenComplete(
+                                                    () => Navigator
+                                                        .pushReplacement(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              const Wrapper()),
                                                     ),
                                                   );
-                                                },
-                                              ),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  chooseImage();
-                                                });
-                                              },
-                                              child: const Text('Add Images'),
-                                            ),
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  autoFillLocation();
-                                                });
-                                              },
-                                              child:
-                                                  const Text('Fill Location'),
-                                            ),
-                                          ],
-                                        ),
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              validatePost();
-                                              if (isValid) {
-                                                uploadRoomFile().whenComplete(
-                                                  () =>
-                                                      Navigator.pushReplacement(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            const HomePage()),
-                                                  ),
-                                                );
-                                              }
-                                            });
-                                          },
-                                          child: const Text('Upload'),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : currentUserProfile.isEmpty ? const Text('Nothing to Show') : currentUserProfile[0]!.countRoommatePost == 0
-                                    ? Form(
-                                        key: _postFormKey,
-                                        child: Column(
-                                          children: [
-                                            TextFormField(
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return "Room Type Can't be Empty";
-                                                } else {
-                                                  return null;
                                                 }
-                                              },
+                                              });
+                                            },
+                                            child: Text('Upload',
                                               style: TextStyle(
                                                 fontSize:
-                                                    displayWidth(context) *
-                                                        0.045,
-                                              ),
-                                              autofocus: false,
-                                              controller: postRoomType,
-                                              decoration: const InputDecoration(
-                                                hintText:
-                                                    'Single Room / Double Room',
-                                                labelText: 'Room Type',
+                                                formElementsSize(
+                                                    context),
                                               ),
                                             ),
-                                            TextFormField(
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return "Room Owner Name Can't be Empty";
-                                                } else {
-                                                  return null;
-                                                }
-                                              },
-                                              style: TextStyle(
-                                                fontSize:
-                                                    displayWidth(context) *
-                                                        0.045,
-                                              ),
-                                              autofocus: false,
-                                              controller: postOwnerName,
-                                              decoration: const InputDecoration(
-                                                hintText: 'Owner\'s Name',
-                                                labelText: 'Owner',
-                                              ),
-                                            ),
-                                            TextFormField(
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return "Your Name Can't be Empty";
-                                                } else {
-                                                  return null;
-                                                }
-                                              },
-                                              style: TextStyle(
-                                                fontSize:
-                                                    displayWidth(context) *
-                                                        0.045,
-                                              ),
-                                              autofocus: false,
-                                              controller: tenantName,
-                                              decoration: const InputDecoration(
-                                                hintText: 'Your Name',
-                                                labelText: 'Your Name',
-                                              ),
-                                            ),
-                                            currentUserProfile[0]!.isHomeOwner
-                                                ? TextFormField(
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : currentUserProfile.isEmpty
+                                      ? const Text('Nothing to Show')
+                                      : currentUserProfile[0]!
+                                                  .countRoommatePost ==
+                                              0
+                                          ?
+                                          //Create Roommate Posts
+                                          Form(
+                                              key: _postFormKey,
+                                              child: Column(
+                                                children: [
+                                                  TextFormField(
                                                     validator: (value) {
                                                       if (value == null ||
                                                           value.isEmpty) {
-                                                        return "Mobile Number Can't be Empty";
+                                                        return "Room Type Can't be Empty";
                                                       } else {
                                                         return null;
                                                       }
                                                     },
                                                     style: TextStyle(
-                                                      fontSize: displayWidth(
-                                                              context) *
-                                                          0.045,
+                                                      fontSize:
+                                                          formElementsSize(
+                                                              context),
                                                     ),
                                                     autofocus: false,
-                                                    keyboardType:
-                                                        TextInputType.number,
-                                                    controller: tenantContact,
+                                                    controller: postRoomType,
                                                     decoration:
-                                                        const InputDecoration(
-                                                      hintText:
-                                                          'Owner\'s Contact Number',
-                                                      labelText: 'Contact',
+                                                    InputDecoration(
+                                                      enabledBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      focusedBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      hintText: 'Single Room / Double Room',
+                                                      hintStyle: TextStyle(
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                      ),
+                                                      labelText: 'Room Type',
+                                                      labelStyle: TextStyle(
+                                                        color: Colors.indigo,
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
                                                     ),
-                                                  )
-                                                : TextFormField(
+                                                  ),
+                                                  TextFormField(
                                                     validator: (value) {
                                                       if (value == null ||
                                                           value.isEmpty) {
-                                                        return "Mobile Number Can't be Empty";
+                                                        return "Room Owner Name Can't be Empty";
                                                       } else {
                                                         return null;
                                                       }
                                                     },
                                                     style: TextStyle(
-                                                      fontSize: displayWidth(
-                                                              context) *
-                                                          0.045,
+                                                      fontSize:
+                                                          formElementsSize(
+                                                              context),
                                                     ),
                                                     autofocus: false,
-                                                    keyboardType:
-                                                        TextInputType.number,
-                                                    controller: tenantContact,
+                                                    controller: postOwnerName,
                                                     decoration:
-                                                        const InputDecoration(
-                                                      hintText:
-                                                          'Your Contact Number',
-                                                      labelText: 'Contact',
+                                                    InputDecoration(
+                                                      enabledBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      focusedBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      hintText: 'Owner\'s Name',
+                                                      hintStyle: TextStyle(
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                      ),
+                                                      labelText: 'Owner',
+                                                      labelStyle: TextStyle(
+                                                        color: Colors.indigo,
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
                                                     ),
                                                   ),
-                                            TextFormField(
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return "City Can't be Empty";
-                                                } else {
-                                                  return null;
-                                                }
-                                              },
-                                              style: TextStyle(
-                                                fontSize:
-                                                    displayWidth(context) *
-                                                        0.045,
-                                              ),
-                                              autofocus: false,
-                                              controller: postCity,
-                                              decoration: const InputDecoration(
-                                                hintText: 'Delhi',
-                                                labelText: 'City',
-                                              ),
-                                            ),
-                                            TextFormField(
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return "State Can't be Empty";
-                                                } else {
-                                                  return null;
-                                                }
-                                              },
-                                              style: TextStyle(
-                                                fontSize:
-                                                    displayWidth(context) *
-                                                        0.045,
-                                              ),
-                                              autofocus: false,
-                                              controller: postState,
-                                              decoration: const InputDecoration(
-                                                hintText: 'Goa',
-                                                labelText: 'State',
-                                              ),
-                                            ),
-                                            TextFormField(
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return "Address Can't be Empty";
-                                                } else {
-                                                  return null;
-                                                }
-                                              },
-                                              style: TextStyle(
-                                                fontSize:
-                                                    displayWidth(context) *
-                                                        0.045,
-                                              ),
-                                              autofocus: false,
-                                              controller: postAddress,
-                                              decoration: const InputDecoration(
-                                                hintText: 'HouseNo, locality',
-                                                labelText: 'Address',
-                                              ),
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                TextFormField(
-                                                  validator: (value) {
-                                                    if (value == null ||
-                                                        value.isEmpty) {
-                                                      return "PinCode Can't be Empty";
-                                                    } else {
-                                                      return null;
-                                                    }
-                                                  },
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                        displayWidth(context) *
-                                                            0.045,
+                                                  TextFormField(
+                                                    validator: (value) {
+                                                      if (value == null ||
+                                                          value.isEmpty) {
+                                                        return "Your Name Can't be Empty";
+                                                      } else {
+                                                        return null;
+                                                      }
+                                                    },
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          formElementsSize(
+                                                              context),
+                                                    ),
+                                                    autofocus: false,
+                                                    controller: tenantName,
+                                                    decoration:
+                                                    InputDecoration(
+                                                      enabledBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      focusedBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      hintText: 'Alex',
+                                                      hintStyle: TextStyle(
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                      ),
+                                                      labelText: 'Your Name',
+                                                      labelStyle: TextStyle(
+                                                        color: Colors.indigo,
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ),
                                                   ),
-                                                  autofocus: false,
-                                                  keyboardType:
-                                                      TextInputType.number,
-                                                  controller: postPinCode,
-                                                  decoration: InputDecoration(
-                                                    constraints:
-                                                        BoxConstraints.tightFor(
-                                                            width: displayWidth(
-                                                                    context) *
-                                                                0.4),
-                                                    hintText: '474001',
-                                                    labelText: 'Pincode',
+                                                  currentUserProfile[0]!
+                                                          .isHomeOwner
+                                                      ? TextFormField(
+                                                          validator: (value) {
+                                                            if (value == null ||
+                                                                value.isEmpty) {
+                                                              return "Mobile Number Can't be Empty";
+                                                            } else {
+                                                              return null;
+                                                            }
+                                                          },
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                formElementsSize(
+                                                                    context),
+                                                          ),
+                                                          autofocus: false,
+                                                          keyboardType:
+                                                              TextInputType
+                                                                  .number,
+                                                          controller:
+                                                              postOwnerContact,
+                                                          decoration:
+                                                          InputDecoration(
+                                                            enabledBorder:
+                                                            const UnderlineInputBorder(
+                                                              borderSide: BorderSide(
+                                                                  color: Colors.indigo),
+                                                            ),
+                                                            focusedBorder:
+                                                            const UnderlineInputBorder(
+                                                              borderSide: BorderSide(
+                                                                  color: Colors.indigo),
+                                                            ),
+                                                            hintText: 'Owner\'s Contact Number ',
+                                                            hintStyle: TextStyle(
+                                                              fontSize:
+                                                              formElementsSize(context),
+                                                            ),
+                                                            labelText: 'Contact',
+                                                            labelStyle: TextStyle(
+                                                              color: Colors.indigo,
+                                                              fontSize:
+                                                              formElementsSize(context),
+                                                              fontWeight: FontWeight.w500,
+                                                            ),
+                                                          ),
+                                                        )
+                                                      : TextFormField(
+                                                          validator: (value) {
+                                                            if (value == null ||
+                                                                value.isEmpty) {
+                                                              return "Mobile Number Can't be Empty";
+                                                            } else {
+                                                              return null;
+                                                            }
+                                                          },
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                formElementsSize(
+                                                                    context),
+                                                          ),
+                                                          autofocus: false,
+                                                          keyboardType:
+                                                              TextInputType
+                                                                  .number,
+                                                          controller:
+                                                              tenantContact,
+                                                          decoration:
+                                                          InputDecoration(
+                                                            enabledBorder:
+                                                            const UnderlineInputBorder(
+                                                              borderSide: BorderSide(
+                                                                  color: Colors.indigo),
+                                                            ),
+                                                            focusedBorder:
+                                                            const UnderlineInputBorder(
+                                                              borderSide: BorderSide(
+                                                                  color: Colors.indigo),
+                                                            ),
+                                                            hintText: 'Your Contact Number',
+                                                            hintStyle: TextStyle(
+                                                              fontSize:
+                                                              formElementsSize(context),
+                                                            ),
+                                                            labelText: 'Contact',
+                                                            labelStyle: TextStyle(
+                                                              color: Colors.indigo,
+                                                              fontSize:
+                                                              formElementsSize(context),
+                                                              fontWeight: FontWeight.w500,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                  TextFormField(
+                                                    validator: (value) {
+                                                      if (value == null ||
+                                                          value.isEmpty) {
+                                                        return "City Can't be Empty";
+                                                      } else {
+                                                        return null;
+                                                      }
+                                                    },
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          formElementsSize(
+                                                              context),
+                                                    ),
+                                                    autofocus: false,
+                                                    controller: postCity,
+                                                    decoration:
+                                                    InputDecoration(
+                                                      enabledBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      focusedBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      hintText: 'Delhi',
+                                                      hintStyle: TextStyle(
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                      ),
+                                                      labelText: 'City',
+                                                      labelStyle: TextStyle(
+                                                        color: Colors.indigo,
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ),
                                                   ),
-                                                ),
-                                                TextFormField(
-                                                  validator: (value) {
-                                                    if (value == null ||
-                                                        value.isEmpty) {
-                                                      return "Number of Beds Can't be Empty";
-                                                    } else if (int.parse(
-                                                            value) <=
-                                                        0) {
-                                                      return "Should have atleast 1 bed";
-                                                    } else {
-                                                      return null;
-                                                    }
-                                                  },
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                        displayWidth(context) *
-                                                            0.045,
+                                                  TextFormField(
+                                                    validator: (value) {
+                                                      if (value == null ||
+                                                          value.isEmpty) {
+                                                        return "State Can't be Empty";
+                                                      } else {
+                                                        return null;
+                                                      }
+                                                    },
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          formElementsSize(
+                                                              context),
+                                                    ),
+                                                    autofocus: false,
+                                                    controller: postState,
+                                                    decoration:
+                                                    InputDecoration(
+                                                      enabledBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      focusedBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      hintText: 'Madhya Pradesh',
+                                                      hintStyle: TextStyle(
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                      ),
+                                                      labelText: 'State',
+                                                      labelStyle: TextStyle(
+                                                        color: Colors.indigo,
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ),
                                                   ),
-                                                  autofocus: false,
-                                                  controller: postBeds,
-                                                  decoration: InputDecoration(
-                                                    constraints:
-                                                        BoxConstraints.tightFor(
-                                                            width: displayWidth(
-                                                                    context) *
-                                                                0.4),
-                                                    hintText: '2',
-                                                    labelText: 'Beds',
-                                                    suffixText: '/Room'
+                                                  TextFormField(
+                                                    validator: (value) {
+                                                      if (value == null ||
+                                                          value.isEmpty) {
+                                                        return "Address Can't be Empty";
+                                                      } else {
+                                                        return null;
+                                                      }
+                                                    },
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          formElementsSize(
+                                                              context),
+                                                    ),
+                                                    autofocus: false,
+                                                    controller: postAddress,
+                                                    decoration:
+                                                    InputDecoration(
+                                                      enabledBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      focusedBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      hintText: 'House Number, Locality',
+                                                      hintStyle: TextStyle(
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                      ),
+                                                      labelText: 'Address',
+                                                      labelStyle: TextStyle(
+                                                        color: Colors.indigo,
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                            TextFormField(
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return "Price Can't be Empty";
-                                                } else if (int.parse(value) <=
-                                                    0) {
-                                                  return "Price should be Greater than 0";
-                                                } else {
-                                                  return null;
-                                                }
-                                              },
-                                              style: TextStyle(
-                                                fontSize:
-                                                    displayWidth(context) *
-                                                        0.045,
-                                              ),
-                                              autofocus: false,
-                                              controller: postPrice,
-                                              decoration: const InputDecoration(
-                                                prefixText: "\u20B9",
-                                                suffixText: "/Month",
-                                                hintText: '4500',
-                                                labelText: 'Price',
-                                              ),
-                                            ),
-                                            currentUserProfile[0]!.isHomeOwner
-                                                ? const SizedBox(
-                                                    height: 0,
-                                                    width: 0,
-                                                  )
-                                                : TextFormField(
+                                                  TextFormField(
+                                                    validator: (value) {
+                                                      if (value == null ||
+                                                          value.isEmpty) {
+                                                        return "Room Description Can't be Empty";
+                                                      } else {
+                                                        return null;
+                                                      }
+                                                    },
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                      formElementsSize(
+                                                          context),
+                                                    ),
+                                                    autofocus: false,
+                                                    controller: roomDescription,
+                                                    decoration:
+                                                    InputDecoration(
+                                                      enabledBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      focusedBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      hintText: 'Facilities Available with Room',
+                                                      hintStyle: TextStyle(
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                      ),
+                                                      labelText: 'Room Description',
+                                                      labelStyle: TextStyle(
+                                                        color: Colors.indigo,
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      TextFormField(
+                                                        validator: (value) {
+                                                          if (value == null ||
+                                                              value.isEmpty) {
+                                                            return "PinCode Can't be Empty";
+                                                          } else {
+                                                            return null;
+                                                          }
+                                                        },
+                                                        style: TextStyle(
+                                                          fontSize:
+                                                              formElementsSize(
+                                                                  context),
+                                                        ),
+                                                        autofocus: false,
+                                                        keyboardType:
+                                                            TextInputType
+                                                                .number,
+                                                        controller: postPinCode,
+                                                        decoration:
+                                                        InputDecoration(
+                                                            constraints: BoxConstraints
+                                                                .tightFor(
+                                                                    width: displayWidth(
+                                                                            context) *
+                                                                        0.4),
+                                                          enabledBorder:
+                                                          const UnderlineInputBorder(
+                                                            borderSide: BorderSide(
+                                                                color: Colors.indigo),
+                                                          ),
+                                                          focusedBorder:
+                                                          const UnderlineInputBorder(
+                                                            borderSide: BorderSide(
+                                                                color: Colors.indigo),
+                                                          ),
+                                                          hintText: '474001',
+                                                          hintStyle: TextStyle(
+                                                            fontSize:
+                                                            formElementsSize(context),
+                                                          ),
+                                                          labelText: 'PinCode',
+                                                          labelStyle: TextStyle(
+                                                            color: Colors.indigo,
+                                                            fontSize:
+                                                            formElementsSize(context),
+                                                            fontWeight: FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      TextFormField(
+                                                        validator: (value) {
+                                                          if (value == null ||
+                                                              value.isEmpty) {
+                                                            return "Number of Beds Can't be Empty";
+                                                          } else if (int.parse(
+                                                                  value) <=
+                                                              0) {
+                                                            return "Should have atleast 1 bed";
+                                                          } else {
+                                                            return null;
+                                                          }
+                                                        },
+                                                        style: TextStyle(
+                                                          fontSize:
+                                                              formElementsSize(
+                                                                  context),
+                                                        ),
+                                                        autofocus: false,
+                                                        controller: postBeds,
+                                                        decoration: InputDecoration(
+                                                          constraints: BoxConstraints
+                                                              .tightFor(
+                                                              width: displayWidth(
+                                                                  context) *
+                                                                  0.4),
+                                                          enabledBorder:
+                                                          const UnderlineInputBorder(
+                                                            borderSide: BorderSide(
+                                                                color: Colors.indigo),
+                                                          ),
+                                                          focusedBorder:
+                                                          const UnderlineInputBorder(
+                                                            borderSide: BorderSide(
+                                                                color: Colors.indigo),
+                                                          ),
+                                                          hintText: '1',
+                                                          hintStyle: TextStyle(
+                                                            fontSize:
+                                                            formElementsSize(context),
+                                                          ),
+                                                          labelText: 'Beds',
+                                                          labelStyle: TextStyle(
+                                                            color: Colors.indigo,
+                                                            fontSize:
+                                                            formElementsSize(context),
+                                                            fontWeight: FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                    children: [
+                                                      TextFormField(
+                                                        validator: (value) {
+                                                          if (value == null ||
+                                                              value.isEmpty) {
+                                                            return "Cant be Empty";
+                                                          }
+                                                          else if( value == '0' )
+                                                            {
+                                                              return 'Can\'t be Zero';
+                                                            }
+                                                          else {
+                                                            return null;
+                                                          }
+                                                        },
+                                                        style: TextStyle(
+                                                          fontSize:
+                                                          formElementsSize(
+                                                              context),
+                                                        ),
+                                                        autofocus: false,
+                                                        keyboardType:
+                                                        TextInputType
+                                                            .number,
+                                                        controller: kitchenCount,
+                                                        decoration:
+                                                        InputDecoration(
+                                                          constraints: BoxConstraints
+                                                              .tightFor(
+                                                              width: displayWidth(
+                                                                  context) *
+                                                                  0.4),
+                                                          enabledBorder:
+                                                          const UnderlineInputBorder(
+                                                            borderSide: BorderSide(
+                                                                color: Colors.indigo),
+                                                          ),
+                                                          focusedBorder:
+                                                          const UnderlineInputBorder(
+                                                            borderSide: BorderSide(
+                                                                color: Colors.indigo),
+                                                          ),
+                                                          hintText: '2',
+                                                          hintStyle: TextStyle(
+                                                            fontSize:
+                                                            formElementsSize(context),
+                                                          ),
+                                                          labelText: 'Kitchen',
+                                                          labelStyle: TextStyle(
+                                                            color: Colors.indigo,
+                                                            fontSize:
+                                                            formElementsSize(context),
+                                                            fontWeight: FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      TextFormField(
+                                                        validator: (value) {
+                                                          if (value == null ||
+                                                              value.isEmpty) {
+                                                            return "Cant be Empty";
+                                                          }
+                                                          else if( value == '0' )
+                                                          {
+                                                            return 'Can\'t be Zero';
+                                                          }
+                                                          else {
+                                                            return null;
+                                                          }
+                                                        },
+                                                        style: TextStyle(
+                                                          fontSize:
+                                                          formElementsSize(
+                                                              context),
+                                                        ),
+                                                        autofocus: false,
+                                                        keyboardType:
+                                                        TextInputType
+                                                            .number,
+                                                        controller: latBathCount,
+                                                        decoration:
+                                                        InputDecoration(
+                                                          constraints: BoxConstraints
+                                                              .tightFor(
+                                                              width: displayWidth(
+                                                                  context) *
+                                                                  0.4),
+                                                          enabledBorder:
+                                                          const UnderlineInputBorder(
+                                                            borderSide: BorderSide(
+                                                                color: Colors.indigo),
+                                                          ),
+                                                          focusedBorder:
+                                                          const UnderlineInputBorder(
+                                                            borderSide: BorderSide(
+                                                                color: Colors.indigo),
+                                                          ),
+                                                          hintText: '2',
+                                                          hintStyle: TextStyle(
+                                                            fontSize:
+                                                            formElementsSize(context),
+                                                          ),
+                                                          labelText: 'Washroom',
+                                                          labelStyle: TextStyle(
+                                                            color: Colors.indigo,
+                                                            fontSize:
+                                                            formElementsSize(context),
+                                                            fontWeight: FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                    children: [
+                                                      TextFormField(
+                                                        validator: (value) {
+                                                          if (value == null ||
+                                                              value.isEmpty) {
+                                                            return "Price Can't be Empty";
+                                                          } else if (int.parse(
+                                                              value) <=
+                                                              0) {
+                                                            return "Price should be Greater than 0";
+                                                          } else {
+                                                            return null;
+                                                          }
+                                                        },
+                                                        style: TextStyle(
+                                                          fontSize:
+                                                          formElementsSize(
+                                                              context),
+                                                        ),
+                                                        autofocus: false,
+                                                        controller: postPrice,
+                                                        decoration:
+                                                         InputDecoration(
+                                                          constraints: BoxConstraints
+                                                              .tightFor(
+                                                              width: displayWidth(
+                                                                  context) *
+                                                                  0.4),
+                                                          prefixText: "\u20B9",
+                                                          suffixText: "/Month",
+                                                          hintText: '4500',
+                                                          labelText: 'Price',
+                                                           enabledBorder:
+                                                           const UnderlineInputBorder(
+                                                             borderSide: BorderSide(
+                                                                 color: Colors.indigo),
+                                                           ),
+                                                           focusedBorder:
+                                                           const UnderlineInputBorder(
+                                                             borderSide: BorderSide(
+                                                                 color: Colors.indigo),
+                                                           ),
+                                                           hintStyle: TextStyle(
+                                                             fontSize:
+                                                             formElementsSize(context),
+                                                           ),
+                                                           labelStyle: TextStyle(
+                                                             color: Colors.indigo,
+                                                             fontSize:
+                                                             formElementsSize(context),
+                                                             fontWeight: FontWeight.w500,
+                                                           ),
+                                                        ),
+                                                      ),
+                                                      TextFormField(
+                                                        validator: (value) {
+                                                          if (value == null ||
+                                                              value.isEmpty) {
+                                                            return "Cant be Empty";
+                                                          }
+                                                          else if( value == '0' )
+                                                          {
+                                                            return 'Can\'t be Zero';
+                                                          }
+                                                          else {
+                                                            return null;
+                                                          }
+                                                        },
+                                                        style: TextStyle(
+                                                          fontSize:
+                                                          formElementsSize(
+                                                              context),
+                                                        ),
+                                                        autofocus: false,
+                                                        keyboardType:
+                                                        TextInputType
+                                                            .number,
+                                                        controller: areaOfRoom,
+                                                        decoration:
+                                                        InputDecoration(
+                                                          constraints: BoxConstraints
+                                                              .tightFor(
+                                                              width: displayWidth(
+                                                                  context) *
+                                                                  0.4),
+                                                          enabledBorder:
+                                                          const UnderlineInputBorder(
+                                                            borderSide: BorderSide(
+                                                                color: Colors.indigo),
+                                                          ),
+                                                          focusedBorder:
+                                                          const UnderlineInputBorder(
+                                                            borderSide: BorderSide(
+                                                                color: Colors.indigo),
+                                                          ),
+                                                          hintText: '500',
+                                                          suffixText: "Sq. ft",
+                                                          hintStyle: TextStyle(
+                                                            fontSize:
+                                                            formElementsSize(context),
+                                                          ),
+                                                          labelText: 'Room Area',
+                                                          labelStyle: TextStyle(
+                                                            color: Colors.indigo,
+                                                            fontSize:
+                                                            formElementsSize(context),
+                                                            fontWeight: FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  currentUserProfile[0]!
+                                                          .isHomeOwner
+                                                      ? const SizedBox(
+                                                          height: 0,
+                                                          width: 0,
+                                                        )
+                                                      : TextFormField(
                                                     validator: (value) {
                                                       if (value == null ||
                                                           value.isEmpty) {
                                                         return "Price Can't be Empty";
                                                       } else if (int.parse(
-                                                              value) <=
+                                                          value) <=
                                                           0) {
                                                         return "Price should be Greater than 0";
                                                       } else {
@@ -877,158 +1827,232 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                       }
                                                     },
                                                     style: TextStyle(
-                                                      fontSize: displayWidth(
-                                                              context) *
-                                                          0.045,
+                                                      fontSize:
+                                                      formElementsSize(
+                                                          context),
                                                     ),
                                                     autofocus: false,
                                                     controller: perPersonPrice,
                                                     decoration:
-                                                        const InputDecoration(
+                                                    InputDecoration(
                                                       prefixText: "\u20B9",
                                                       suffixText: "/Person",
                                                       hintText: '4500',
-                                                      labelText:
-                                                          'Per Person Price',
+                                                      labelText: 'Per Person Price',
+                                                      enabledBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      focusedBorder:
+                                                      const UnderlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Colors.indigo),
+                                                      ),
+                                                      hintStyle: TextStyle(
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                      ),
+                                                      labelStyle: TextStyle(
+                                                        color: Colors.indigo,
+                                                        fontSize:
+                                                        formElementsSize(context),
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
                                                     ),
                                                   ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                Text(
-                                                  'Room Furnished',
-                                                  style: TextStyle(
-                                                      fontSize: displayWidth(
-                                                              context) *
-                                                          0.045,
-                                                      color:
-                                                          Colors.grey.shade600),
-                                                ),
-                                                Switch(
-                                                  value: isFurnished,
-                                                  onChanged: (value) =>
-                                                      setState(() {
-                                                    isFurnished = !isFurnished;
-                                                  }),
-                                                ),
-                                              ],
-                                            ),
-                                            _image.isEmpty
-                                                ? const SizedBox(
-                                                    height: 0,
-                                                    width: 0,
-                                                  )
-                                                : GridView.builder(
-                                                    shrinkWrap: true,
-                                                    scrollDirection:
-                                                        Axis.vertical,
-                                                    itemCount: _image.length,
-                                                    gridDelegate:
-                                                        const SliverGridDelegateWithFixedCrossAxisCount(
-                                                      crossAxisCount: 3,
-                                                    ),
-                                                    itemBuilder:
-                                                        (context, index) {
-                                                      return Container(
-                                                        margin: const EdgeInsets
-                                                            .all(3),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(10),
-                                                          image:
-                                                              DecorationImage(
-                                                            image: FileImage(
-                                                                _image[index]),
-                                                            fit: BoxFit.cover,
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Text(
+                                                        'Are you a Home Owner?',
+                                                        style: TextStyle(
+                                                            fontSize:
+                                                                formElementsSize(
+                                                                    context),
+                                                            color: isFurnished
+                                                                ? Colors.indigo
+                                                                : Colors.grey
+                                                                    .shade600),
+                                                      ),
+                                                      Switch(
+                                                        value: isFurnished,
+                                                        onChanged: (value) =>
+                                                            setState(() {
+                                                          isFurnished =
+                                                              !isFurnished;
+                                                        }),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  _image.isEmpty
+                                                      ? const SizedBox(
+                                                          height: 0,
+                                                          width: 0,
+                                                        )
+                                                      : GridView.builder(
+                                                          shrinkWrap: true,
+                                                          scrollDirection:
+                                                              Axis.vertical,
+                                                          itemCount:
+                                                              _image.length,
+                                                          gridDelegate:
+                                                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                                            crossAxisCount: 3,
+                                                          ),
+                                                          itemBuilder:
+                                                              (context, index) {
+                                                            return Container(
+                                                              margin:
+                                                                  const EdgeInsets
+                                                                      .all(10),
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            15),
+                                                                image:
+                                                                    DecorationImage(
+                                                                  image: FileImage(
+                                                                      _image[
+                                                                          index]),
+                                                                  fit: BoxFit
+                                                                      .cover,
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceEvenly,
+                                                    children: [
+                                                      ElevatedButton(
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          primary:
+                                                              darkBlueColor,
+                                                          shape: RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          10)),
+                                                        ),
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            chooseImage();
+                                                          });
+                                                        },
+                                                        child:  Text(
+                                                            'Add Images',
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                            formElementsSize(
+                                                                context),
                                                           ),
                                                         ),
-                                                      );
-                                                    },
-                                                  ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceEvenly,
-                                              children: [
-                                                ElevatedButton(
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      chooseImage();
-                                                    });
-                                                  },
-                                                  child:
-                                                      const Text('Add Images'),
-                                                ),
-                                                ElevatedButton(
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      autoFillLocation();
-                                                    });
-                                                  },
-                                                  child: const Text(
-                                                      'Fill Location'),
-                                                ),
-                                              ],
-                                            ),
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                setState(()  {
-                                                  validatePost();
-                                                  if (isValid) {
-                                                     _databaseService
-                                                        .updateUserData(
-                                                            currentUserProfile[
-                                                                    0]!
-                                                                .name,
-                                                            currentUserProfile[
-                                                                    0]!
-                                                                .contactNumber,
-                                                            currentUserProfile[
-                                                                    0]!
-                                                                .profession,
-                                                            currentUserProfile[
-                                                                    0]!
-                                                                .isHomeOwner,
-                                                            currentUserProfile[
-                                                                    0]!
-                                                                .email,
-                                                            1,
-                                                            currentUserProfile[
-                                                                    0]!
-                                                                .belogsTo);
-                                                    uploadRoommateFile()
-                                                        .whenComplete(
-                                                      () => Navigator
-                                                          .pushReplacement(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                const HomePage()),
                                                       ),
-                                                    );
-                                                  }
-                                                });
-                                              },
-                                              child: const Text('Upload'),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : const SizedBox(
-                                        height: 0,
-                                        width: 0,
-                                      ),
-                          ],
+                                                      ElevatedButton(
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          primary:
+                                                              darkBlueColor,
+                                                          shape: RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          10)),
+                                                        ),
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            autoFillLocation();
+                                                          });
+                                                        },
+                                                        child:  Text(
+                                                            'Fill Location',
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                            formElementsSize(
+                                                                context),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  ElevatedButton(
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      primary: darkBlueColor,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          10)),
+                                                    ),
+                                                    onPressed: () {
+                                                      setState(() {
+                                                        validatePost();
+                                                        if (isValid) {
+                                                          _databaseService.updateUserData(
+                                                              currentUserProfile[
+                                                                      0]!
+                                                                  .name,
+                                                              currentUserProfile[
+                                                                      0]!
+                                                                  .contactNumber,
+                                                              currentUserProfile[
+                                                                      0]!
+                                                                  .profession,
+                                                              currentUserProfile[
+                                                                      0]!
+                                                                  .isHomeOwner,
+                                                              currentUserProfile[
+                                                                      0]!
+                                                                  .email,
+                                                              1,
+                                                              currentUserProfile[
+                                                                      0]!
+                                                                  .belogsTo);
+                                                          uploadRoommateFile()
+                                                              .whenComplete(
+                                                            () => Navigator
+                                                                .pushReplacement(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          const Wrapper()),
+                                                            ),
+                                                          );
+                                                        }
+                                                      });
+                                                    },
+                                                    child: Text(
+                                                      'Upload',
+                                                      style: TextStyle(
+                                                        fontSize:
+                                                            formElementsSize(
+                                                                context),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            )
+                                          : const Text(
+                                              'You can create only one Roommate Post!'),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  )
-            : const Text('Rotate your device in Portrait'),
       ),
     );
   }

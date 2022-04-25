@@ -1,5 +1,5 @@
 class PostData {
-  final String roomType;
+final String roomType;
   final String city;
   final String state;
   final String userId;
@@ -8,15 +8,23 @@ class PostData {
   final String ownContact;
   final String ownAddress;
   final String pinCode;
+  final String roomDescription;
   final bool isFurnished;
   final bool isVisible;
   final int beds;
   final int price;
+  final int areaOfRoom;
+  final int kitchenCount;
+  final int latBathCount;
   String postId = "";
   List<dynamic> uplImgLink = [];
 
   PostData(
-      { required this.date,
+      { required this.roomDescription,
+        required this.areaOfRoom,
+        required this.latBathCount,
+        required this.kitchenCount,
+        required this.date,
         required this.roomType,
         required this.city,
         required this.state,

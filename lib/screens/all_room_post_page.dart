@@ -5,10 +5,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:room_rental_app/models/location.dart';
 import 'package:room_rental_app/services/firebase_auth.dart';
+import 'package:room_rental_app/utils/constants.dart';
+import 'package:room_rental_app/utils/customised_app_bar.dart';
 //import 'package:room_rental_app/services/location_services.dart'; ->  Do not call this page here
 import 'package:room_rental_app/utils/device_size.dart';
 import 'package:room_rental_app/utils/provider_location.dart';
 import '../utils/all_post_list.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 
 class AllRoomPost extends StatefulWidget {
   const AllRoomPost({Key? key}) : super(key: key);
@@ -38,10 +41,10 @@ class _AllRoomPostState extends State<AllRoomPost> {
 
   Position? _currentPosition;
   String? _error;
-  String city ="Gwalior";
+  String city = "Gwalior";
   late myLocation _location;
   bool showFilteredData = false;
-  Future<String> locationPerimission() async {
+  Future<String> locationPermission() async {
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -78,7 +81,7 @@ class _AllRoomPostState extends State<AllRoomPost> {
   myLocation get currentLocation => _location;
 
   Future<void> determinePosition(BuildContext context) async {
-    String permission = await locationPerimission();
+    String permission = await locationPermission();
     if (permission == 'All Set') {
       print('permission granted');
       Geolocator.getCurrentPosition(
@@ -115,7 +118,7 @@ class _AllRoomPostState extends State<AllRoomPost> {
             city: place.locality,
             state: place.administrativeArea,
             country: place.country);
-        city=place.locality!;
+        city = place.locality!;
         isLoading = false;
       });
 
@@ -139,84 +142,161 @@ class _AllRoomPostState extends State<AllRoomPost> {
       });
     }
     return SafeArea(
-      child:Scaffold(
-                  appBar: AppBar(
-                    automaticallyImplyLeading: false,
-                    title: const Text('Home Page'),
-                    actions: [
+      child: Scaffold(
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const CustomisedAppBar(
+                mainHeading: 'Rooms Available',
+                subHeading: 'Showing Recents First',
+              isProfileSection: false,
+            ),
+            (isLoading)
+                ? Center(
+                    child: AnimatedTextKit(
+                      repeatForever: true,
+                      animatedTexts: [
+                        TypewriterAnimatedText(
+                          'Getting Current Location',
+                          textStyle: TextStyle(
+                            fontSize: displayWidth(context) * 0.055,
+                            fontWeight: FontWeight.w500,
+                            color: darkBlueColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Center(
+                        child: Text(
+                          '${finalLocation.city}, ${finalLocation.country}',
+                          style: TextStyle(
+                            fontSize: displayWidth(context) * 0.06,
+                            fontWeight: FontWeight.w600,
+                            color: darkBlueColor,
+                          ),
+                        ),
+                      ),
                       IconButton(
+                        icon: const Icon(Icons.location_on_sharp),
+                        color: darkBlueColor,
+                        iconSize: displayWidth(context) * 0.07,
                         onPressed: () {
                           setState(() {
-                            print(user);
-                            _authService.logout();
+                            determinePosition(context);
                           });
                         },
-                        icon: const Icon(Icons.logout),
                       ),
                     ],
                   ),
-                  body: getOrientation(context) == Orientation.portrait
-                      ? SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              Card(
-                                child: Container(
-                                  height: displayHeight(context) * 0.05,
-                                  width: displayWidth(context),
-                                  child: (isLoading)
-                                      ? const Center(
-                                          child: Text("Getting Location Data"))
-                                      : Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Center(
-                                              child: Text(
-                                                '${finalLocation.city}',
-                                                style: TextStyle(
-                                                  fontSize:
-                                                      displayWidth(context) *
-                                                          0.06,
-                                                ),
-                                              ),
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(
-                                                  Icons.location_searching),
-                                              onPressed: () {
-                                                setState(() {
-                                                  determinePosition(context);
-                                                });
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
+            isLoading
+                ? const SizedBox(
+                    width: 0,
+                    height: 0,
+                  )
+                : Container(
+                    decoration: BoxDecoration(
+                      color: lightGreyCardColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    width: displayWidth(context) * 0.68,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          !showFilteredData
+                              ? Card(
+                            elevation: 15,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 15, vertical: 10),
+                                    child: Text(
+                                      'All Rooms',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize:
+                                            displayWidth(context) * 0.03,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                   ),
+                                  color: darkBlueColor,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(15)),
+                                )
+                              :  GestureDetector(
+                            onTap: (){
+                              setState(() {
+                                showFilteredData = !showFilteredData;
+                              });
+                            },
+                                child: Text(
+                                    'All Rooms',
+                                    style: TextStyle(
+                                      color: darkBlueColor,
+                                      fontSize:
+                                      displayWidth(context) * 0.03,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                              ),
+                          // '${finalLocation.city} Rooms'
+                          showFilteredData
+                              ? Card(
+                            elevation: 15,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 15, vertical: 10),
+                              child: Text(
+                                '${finalLocation.city} Rooms',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize:
+                                  displayWidth(context) * 0.03,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                shadowColor: Colors.grey.shade800,
                               ),
-                              isLoading ? const SizedBox(
-                                width: 0,
-                                height: 0,
-                              ) :
-                              ElevatedButton(onPressed: (){
-                                setState(() {
-                                  showFilteredData= !showFilteredData;
-                                });
-                              }, child: showFilteredData ? const Text('Show All Rooms') : Text('Show ${finalLocation.city} Rooms'),
+                            ),
+                            color: darkBlueColor,
+                            shape: RoundedRectangleBorder(
+                                borderRadius:
+                                BorderRadius.circular(15)),
+                          )
+                              :  GestureDetector(
+                            onTap: (){
+                              setState(() {
+                                showFilteredData = !showFilteredData;
+                              });
+                            },
+                            child: Text(
+                              '${finalLocation.city} Rooms',
+                              style: TextStyle(
+                                color: darkBlueColor,
+                                fontSize:
+                                displayWidth(context) * 0.03,
+                                fontWeight: FontWeight.w600,
                               ),
-                              SizedBox(
-                                height: displayHeight(context) * 0.4,
-                                width: displayWidth(context),
-                                child:  AllPostList(showFilteredData: showFilteredData, city: finalLocation.city!,),
-                              ),
-                            ],
+                            ),
                           ),
-                        )
-                      : const Text('Rotate your device in Portrait'),
-                ),
+                        ],
+                      ),
+                    ),
+                  ),
+            Expanded(
+              child: AllPostList(
+                showFilteredData: showFilteredData,
+                city: finalLocation.city!,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
