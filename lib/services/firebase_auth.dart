@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'database_firestore.dart';
+import 'package:flutter/material.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -34,7 +35,7 @@ class AuthService {
     this.email = email;
     this.countRoommatePost =  countRoommatePost;
     this.belogsTo = belogsTo;
-    print('setted data for user');
+    debugPrint('setted data for user');
   }
 
   Future signUpUser(String email, String password) async {
@@ -43,22 +44,23 @@ class AuthService {
           email: email, password: password);
       User? user = result.user;
       if (user != null) {
-        print(user.uid + 'signUp user');
+        debugPrint(user.uid + 'signUp user');
         await DatabaseService(user.uid)
             .updateUserData(name, contact, profession, isHomeOwner, email, countRoommatePost, belogsTo);
       }
       return user;
     } on FirebaseAuthException catch (e) {
-      print(e.message);
+      debugPrint(e.message);
       return null;
     }
   }
+
 
   Future logout() async {
     try {
       return await _auth.signOut();
     } on FirebaseAuthException catch (e) {
-      print(e.message);
+      debugPrint(e.message);
       return null;
     }
   }

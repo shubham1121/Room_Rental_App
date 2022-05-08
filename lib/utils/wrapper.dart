@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:room_rental_app/models/our_user.dart';
 import 'package:room_rental_app/screens/authentication_screen.dart';
 import 'package:room_rental_app/screens/home_page.dart';
+import 'package:room_rental_app/screens/verify_email_page.dart';
 import 'package:room_rental_app/services/database_firestore.dart';
 import 'package:room_rental_app/services/location_services.dart';
 
@@ -20,7 +21,7 @@ class _WrapperState extends State<Wrapper> {
   Widget build(BuildContext context) {
     _locationServices.determinePosition(context);
     final user = Provider.of<User?>(context);
-    return user == null ?  const AuthenticationPage() : MultiProvider(providers: [
+    return user == null ?  const AuthenticationPage() : user.emailVerified ? MultiProvider(providers: [
       StreamProvider<List<OurUser?>?>.value(
         catchError: (_, __) => null,
         value: DatabaseService(user.uid).ourUserProfileData,
@@ -28,6 +29,6 @@ class _WrapperState extends State<Wrapper> {
       ),
     ],
     child: const HomePage(),
-    );
+    ): const VerifyEmailPage();
   }
 }

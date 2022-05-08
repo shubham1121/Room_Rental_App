@@ -11,6 +11,7 @@ class CustomisedAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Column(
+
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(mainHeading,

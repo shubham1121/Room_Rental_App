@@ -5,6 +5,7 @@ class RoommatePostData {
   final String userId;
   final String date;
   final String ownName;
+  final String postOwnerBelongsTo;
   final String postOwnerName;
   final String tenantContact;
   final String ownAddress;
@@ -12,6 +13,7 @@ class RoommatePostData {
   final String roomDescription;
   final bool isFurnished;
   final bool isVisible;
+  final bool isBooked;
   final int beds;
   final int orgPrice;
   final int perPersonPrice;
@@ -23,6 +25,8 @@ class RoommatePostData {
 
   RoommatePostData(
       { required this.perPersonPrice,
+        required this.isBooked,
+        required this.postOwnerBelongsTo,
         required this.roomDescription,
         required this.postOwnerName,
         required this.date,

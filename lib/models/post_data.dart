@@ -9,8 +9,10 @@ final String roomType;
   final String ownAddress;
   final String pinCode;
   final String roomDescription;
+  final String postOwnerBelongsTo;
   final bool isFurnished;
   final bool isVisible;
+  final bool isBooked;
   final int beds;
   final int price;
   final int areaOfRoom;
@@ -21,9 +23,11 @@ final String roomType;
 
   PostData(
       { required this.roomDescription,
+        required this.isBooked,
         required this.areaOfRoom,
         required this.latBathCount,
         required this.kitchenCount,
+        required this.postOwnerBelongsTo,
         required this.date,
         required this.roomType,
         required this.city,

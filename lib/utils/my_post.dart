@@ -97,7 +97,7 @@ class _MyPostListState extends State<MyPostList> {
                         ),
                         Text(
                           userNonNullProfileData[0].contactNumber.toString() +
-                              '|' +
+                              ' | ' +
                               userNonNullProfileData[0].belogsTo.toString(),
                           style: TextStyle(
                             fontSize: displayWidth(context) * 0.04,

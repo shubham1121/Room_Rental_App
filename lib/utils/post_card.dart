@@ -80,7 +80,7 @@ class _PostCardState extends State<PostCard> {
                             ],
                           ),
                           SizedBox(
-                            width: displayWidth(context) * 0.03,
+                            width: displayWidth(context) * 0.015,
                           ),
                           Expanded(
                             child: Padding(
@@ -156,25 +156,24 @@ class _PostCardState extends State<PostCard> {
                                             )
                                           : IconButton(
                                               alignment: Alignment.center,
-
                                               onPressed: () {
                                                 setState(() {
                                                   isRoommatePostLoading =
-                                                      true;
+                                                  true;
+                                                });
                                                   _databaseService
                                                       .deleteRoommatePost(widget
-                                                          .roommatePostData!)!
-                                                      .whenComplete(() {
-                                                    userCollection
-                                                        .doc(currentUser!
-                                                            .uid)
-                                                        .update({
-                                                      'countRoommatePost':
-                                                          0,
-                                                    });
-                                                    isRoommatePostLoading =
-                                                        false;
-                                                  });
+                                                          .roommatePostData!);
+                                                userCollection
+                                                    .doc(currentUser!
+                                                    .uid)
+                                                    .update({
+                                                  'countRoommatePost':
+                                                  0,
+                                                });
+                                                setState(() {
+                                                  isRoommatePostLoading =
+                                                  false;
                                                 });
                                               },
                                               // padding: const EdgeInsets.all(0),
@@ -291,8 +290,8 @@ class _PostCardState extends State<PostCard> {
                           Column(
                             children: [
                               SizedBox(
-                                height: displayWidth(context) * 0.24,
-                                width: displayWidth(context) * 0.24,
+                                height: displayWidth(context) * 0.23,
+                                width: displayWidth(context) * 0.23,
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(20),
                                   child: CachedNetworkImage(
@@ -308,7 +307,7 @@ class _PostCardState extends State<PostCard> {
                             ],
                           ),
                           SizedBox(
-                            width: displayWidth(context) * 0.03,
+                            width: displayWidth(context) * 0.015,
                           ),
                           Expanded(
                             child: Padding(
@@ -384,17 +383,16 @@ class _PostCardState extends State<PostCard> {
                                             )
                                           : IconButton(
                                               alignment: Alignment.center,
-                                              onPressed: () {
+                                              onPressed: () async {
                                                 setState(() {
                                                   isRoomPostLoading = true;
-                                                  _databaseService
-                                                      .deleteRoomPost(
-                                                          widget.postData!)!
-                                                      .whenComplete(() {
-                                                    isRoomPostLoading =
-                                                        false;
-                                                  });
                                                 });
+                                                await _databaseService.deleteRoomPost(widget.postData!);
+                                                setState(() {
+                                                  if(mounted) {
+                                                      isRoomPostLoading = false;
+                                                    }
+                                                  });
                                               },
                                               // padding: const EdgeInsets.all(0),
                                               icon: Icon(Icons.delete,

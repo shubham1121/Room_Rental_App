@@ -37,6 +37,17 @@ class DatabaseService {
     });
   }
 
+  Future updateRoomPostData(String postId) async{
+    return await allPostCollection.doc(postId).update({'isBooked' : true}).then((value) {
+      debugPrint('Post Updated');
+    }).catchError((error) => debugPrint('Failed to update post $error'));
+  }
+  Future updateRoommatePostData(String postId) async{
+    return await allRoommatePostCollection.doc(postId).update({'isBooked' : true}).then((value) {
+      debugPrint('Post Updated');
+    }).catchError((error) => debugPrint('Failed to update post $error'));
+  }
+
   List<OurUser?>? _ourUserListfromSnapshot(QuerySnapshot snapshot) {
     return snapshot.docs.map((doc) {
       return OurUser(
@@ -98,6 +109,8 @@ class DatabaseService {
 
   Future? addRoomPost(PostData post) async {
     String uploadResult = await allPostCollection.add({
+      'isBooked':post.isBooked,
+      'postOwnerBelongsTo':post.postOwnerBelongsTo,
       'roomDescription': post.roomDescription,
       'kitchenCount': post.kitchenCount,
       'latBathCount': post.latBathCount,
@@ -130,6 +143,8 @@ class DatabaseService {
 
   Future? addRoommatePost(RoommatePostData post) async {
     String uploadResult = await allRoommatePostCollection.add({
+      'isBooked':post.isBooked,
+      'postOwnerBelongsTo':post.postOwnerBelongsTo,
       'roomDescription': post.roomDescription,
       'kitchenCount': post.kitchenCount,
       'latBathCount': post.latBathCount,
@@ -164,8 +179,11 @@ class DatabaseService {
 
   // All Post Data
   List<PostData?>? _ourPostListFromSnapshot(QuerySnapshot snapshot) {
+    debugPrint('Called Now List Post Data');
     return snapshot.docs.map((doc) {
       PostData postData = PostData(
+        isBooked: doc.get('isBooked'),
+        postOwnerBelongsTo: doc.get('postOwnerBelongsTo'),
         roomDescription: doc.get('roomDescription'),
         kitchenCount: doc.get('kitchenCount'),
         latBathCount: doc.get('latBathCount'),
@@ -199,7 +217,8 @@ class DatabaseService {
       .where('userId', isEqualTo: uid)
       .orderBy('upldate')
       .snapshots()
-      .map((snapshot) => _ourPostListFromSnapshot(snapshot));
+      .map((snapshot) { debugPrint('Called snapshot changes');
+        return _ourPostListFromSnapshot(snapshot);});
 
   //Roommate Post Data
   List<RoommatePostData?>? _ourRoommatePostListFromSnapshot(
@@ -208,6 +227,8 @@ class DatabaseService {
       debugPrint(uid);
       debugPrint(doc.get('userId'));
       RoommatePostData postData = RoommatePostData(
+        isBooked: doc.get('isBooked'),
+        postOwnerBelongsTo: doc.get('postOwnerBelongsTo'),
         roomDescription: doc.get('roomDescription'),
         areaOfRoom: doc.get('areaOfRoom'),
         latBathCount: doc.get('latBathCount'),
@@ -249,24 +270,42 @@ class DatabaseService {
   //Delete Post
   Future? deleteRoomPost(PostData postData) async {
     for (var pD in postData.uplImgLink) {
-      await FirebaseStorage.instance.refFromURL(pD).delete();
+      if(pD=='https://firebasestorage.googleapis.com/v0/b/getroomapp-1ae21.appspot.com/o/images%2Fno_image_available.jpg?alt=media&token=97965bee-ff96-4593-9484-a22419dd3703')
+      {
+        continue;
+      }
+      else{
+        await FirebaseStorage.instance.refFromURL(pD).delete();
+      }
     }
     await allPostCollection
         .doc(postData.postId)
         .delete()
-        .then((value) => "Deleted")
+        .then((value)  {
+      debugPrint('Deleted');
+      return "Deleted";
+    })
         .catchError((error) => "Error");
     return null;
   }
   //Delete Roommate Post
   Future? deleteRoommatePost(RoommatePostData postData) async {
     for (var pD in postData.uplImgLink) {
-      await FirebaseStorage.instance.refFromURL(pD).delete();
+      if(pD=='https://firebasestorage.googleapis.com/v0/b/getroomapp-1ae21.appspot.com/o/images%2Fno_image_available.jpg?alt=media&token=97965bee-ff96-4593-9484-a22419dd3703')
+        {
+          continue;
+        }
+      else{
+        await FirebaseStorage.instance.refFromURL(pD).delete();
+      }
     }
     await allRoommatePostCollection
         .doc(postData.postId)
         .delete()
-        .then((value) => "Deleted")
+        .then((value) {
+          debugPrint('Deleted');
+          return "Deleted";
+    })
         .catchError((error) => "Error");
     return null;
   }

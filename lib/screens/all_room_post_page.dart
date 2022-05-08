@@ -197,97 +197,100 @@ class _AllRoomPostState extends State<AllRoomPost> {
                     width: 0,
                     height: 0,
                   )
-                : Container(
-                    decoration: BoxDecoration(
-                      color: lightGreyCardColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    width: displayWidth(context) * 0.68,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          !showFilteredData
-                              ? Card(
-                            elevation: 15,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 15, vertical: 10),
-                                    child: Text(
+                : Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                      decoration: BoxDecoration(
+                        color: lightGreyCardColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      width: displayWidth(context) * 0.68,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            !showFilteredData
+                                ? Card(
+                              elevation: 15,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 15, vertical: 10),
+                                      child: Text(
+                                        'All Rooms',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize:
+                                              displayWidth(context) * 0.03,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    color: darkBlueColor,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(15)),
+                                  )
+                                :  GestureDetector(
+                              onTap: (){
+                                setState(() {
+                                  showFilteredData = !showFilteredData;
+                                });
+                              },
+                                  child: Text(
                                       'All Rooms',
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: darkBlueColor,
                                         fontSize:
-                                            displayWidth(context) * 0.03,
+                                        displayWidth(context) * 0.03,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                  ),
-                                  color: darkBlueColor,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(15)),
-                                )
-                              :  GestureDetector(
-                            onTap: (){
-                              setState(() {
-                                showFilteredData = !showFilteredData;
-                              });
-                            },
+                                ),
+                            // '${finalLocation.city} Rooms'
+                            showFilteredData
+                                ? Card(
+                              elevation: 15,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 15, vertical: 10),
                                 child: Text(
-                                    'All Rooms',
-                                    style: TextStyle(
-                                      color: darkBlueColor,
-                                      fontSize:
-                                      displayWidth(context) * 0.03,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  '${finalLocation.city} Rooms',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize:
+                                    displayWidth(context) * 0.03,
+                                    fontWeight: FontWeight.w600,
                                   ),
+                                ),
                               ),
-                          // '${finalLocation.city} Rooms'
-                          showFilteredData
-                              ? Card(
-                            elevation: 15,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 15, vertical: 10),
+                              color: darkBlueColor,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                  BorderRadius.circular(15)),
+                            )
+                                :  GestureDetector(
+                              onTap: (){
+                                setState(() {
+                                  showFilteredData = !showFilteredData;
+                                });
+                              },
                               child: Text(
                                 '${finalLocation.city} Rooms',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: darkBlueColor,
                                   fontSize:
                                   displayWidth(context) * 0.03,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
-                            color: darkBlueColor,
-                            shape: RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.circular(15)),
-                          )
-                              :  GestureDetector(
-                            onTap: (){
-                              setState(() {
-                                showFilteredData = !showFilteredData;
-                              });
-                            },
-                            child: Text(
-                              '${finalLocation.city} Rooms',
-                              style: TextStyle(
-                                color: darkBlueColor,
-                                fontSize:
-                                displayWidth(context) * 0.03,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                ),
             Expanded(
               child: AllPostList(
                 showFilteredData: showFilteredData,

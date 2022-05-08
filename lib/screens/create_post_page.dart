@@ -143,12 +143,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
     );
   }
 
-  Future<void> uploadRoomFile() async {
+  Future<void> uploadRoomFile(String belongsTo) async {
     setState(() {
       debugPrint('we reached here');
       uploading = true;
     });
     PostData post = PostData(
+      postOwnerBelongsTo: belongsTo,
+      isBooked: false,
       roomDescription: roomDescription.text,
       kitchenCount: int.parse(kitchenCount.text),
       latBathCount: int.parse(latBathCount.text),
@@ -182,18 +184,20 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
     String? uplResult = await _databaseService.addRoomPost(post);
     if (uplResult == "Error") {
-      return uploadRoomFile();
+      return uploadRoomFile(belongsTo);
     } else {
       uplImgLink.clear();
     }
   }
 
-  Future<void> uploadRoommateFile() async {
+  Future<void> uploadRoommateFile(String belongsTo) async {
     setState(() {
       debugPrint('we reached here');
       uploading = true;
     });
     RoommatePostData post = RoommatePostData(
+      isBooked: false,
+      postOwnerBelongsTo: belongsTo,
       roomDescription: roomDescription.text,
       kitchenCount: int.parse(kitchenCount.text),
       latBathCount: int.parse(latBathCount.text),
@@ -216,7 +220,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     );
     if (_image.isEmpty) {
       post.uplImgLink.add(
-          'https://firebasestorage.googleapis.com/v0/b/getroomapp-1ae21.appspot.com/o/images%2Fno_image_available.jpg?alt=media&token=46b5061b-9822-4012-9ea1-9a6f726b2c8e');
+          'https://firebasestorage.googleapis.com/v0/b/getroomapp-1ae21.appspot.com/o/images%2Fno_image_available.jpg?alt=media&token=97965bee-ff96-4593-9484-a22419dd3703');
     } else {
       for (var img in _image) {
         String? result = await _databaseService.uploadImageFirebaseStorage(img);
@@ -229,7 +233,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
     String? uplResult = await _databaseService.addRoommatePost(post);
     if (uplResult == "Error") {
-      return uploadRoomFile();
+      return uploadRoommateFile(belongsTo);
     } else {
       uplImgLink.clear();
     }
@@ -254,7 +258,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 : currentUserProfile[0] == null
                     ? Loading(false)
                     : SingleChildScrollView(
-          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                        physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics()),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 15, vertical: 0),
@@ -263,10 +268,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
                               currentUserProfile[0]!.isHomeOwner
                                   ? const CustomisedAppBar(
                                       mainHeading: 'Room Posts',
-                                      subHeading: 'Create Post For Rooms',isProfileSection: false,)
+                                      subHeading: 'Create Post For Rooms',
+                                      isProfileSection: false,
+                                    )
                                   : const CustomisedAppBar(
                                       mainHeading: 'Roommate Posts',
-                                      subHeading: 'Create Post For Roommates',isProfileSection: false,),
+                                      subHeading: 'Create Post For Roommates',
+                                      isProfileSection: false,
+                                    ),
                               currentUserProfile[0]!.isHomeOwner
                                   ?
                                   //Create Room Posts
@@ -285,33 +294,32 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                             },
                                             style: TextStyle(
                                               fontSize:
-                                              formElementsSize(
-                                                  context),
+                                                  formElementsSize(context),
                                             ),
                                             autofocus: false,
                                             controller: postRoomType,
-                                            decoration:
-                                            InputDecoration(
+                                            decoration: InputDecoration(
                                               enabledBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
                                               focusedBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
-                                              hintText: 'Single Room / Double Room',
+                                              hintText:
+                                                  'Single Room / Double Room',
                                               hintStyle: TextStyle(
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                               ),
                                               labelText: 'Room Type',
                                               labelStyle: TextStyle(
                                                 color: Colors.indigo,
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -327,33 +335,31 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                             },
                                             style: TextStyle(
                                               fontSize:
-                                              formElementsSize(
-                                                  context),
+                                                  formElementsSize(context),
                                             ),
                                             autofocus: false,
                                             controller: postOwnerName,
-                                            decoration:
-                                            InputDecoration(
+                                            decoration: InputDecoration(
                                               enabledBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
                                               focusedBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
                                               hintText: 'Owner\'s Name',
                                               hintStyle: TextStyle(
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                               ),
                                               labelText: 'Owner',
                                               labelStyle: TextStyle(
                                                 color: Colors.indigo,
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -369,37 +375,33 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                             },
                                             style: TextStyle(
                                               fontSize:
-                                              formElementsSize(
-                                                  context),
+                                                  formElementsSize(context),
                                             ),
                                             autofocus: false,
-                                            keyboardType:
-                                            TextInputType
-                                                .number,
-                                            controller:
-                                            postOwnerContact,
-                                            decoration:
-                                            InputDecoration(
+                                            keyboardType: TextInputType.number,
+                                            controller: postOwnerContact,
+                                            decoration: InputDecoration(
                                               enabledBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
                                               focusedBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
-                                              hintText: 'Owner\'s Contact Number ',
+                                              hintText:
+                                                  'Owner\'s Contact Number ',
                                               hintStyle: TextStyle(
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                               ),
                                               labelText: 'Contact',
                                               labelStyle: TextStyle(
                                                 color: Colors.indigo,
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -415,33 +417,31 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                             },
                                             style: TextStyle(
                                               fontSize:
-                                              formElementsSize(
-                                                  context),
+                                                  formElementsSize(context),
                                             ),
                                             autofocus: false,
                                             controller: postCity,
-                                            decoration:
-                                            InputDecoration(
+                                            decoration: InputDecoration(
                                               enabledBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
                                               focusedBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
                                               hintText: 'Delhi',
                                               hintStyle: TextStyle(
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                               ),
                                               labelText: 'City',
                                               labelStyle: TextStyle(
                                                 color: Colors.indigo,
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -457,33 +457,31 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                             },
                                             style: TextStyle(
                                               fontSize:
-                                              formElementsSize(
-                                                  context),
+                                                  formElementsSize(context),
                                             ),
                                             autofocus: false,
                                             controller: postState,
-                                            decoration:
-                                            InputDecoration(
+                                            decoration: InputDecoration(
                                               enabledBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
                                               focusedBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
                                               hintText: 'Madhya Pradesh',
                                               hintStyle: TextStyle(
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                               ),
                                               labelText: 'State',
                                               labelStyle: TextStyle(
                                                 color: Colors.indigo,
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -499,33 +497,32 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                             },
                                             style: TextStyle(
                                               fontSize:
-                                              formElementsSize(
-                                                  context),
+                                                  formElementsSize(context),
                                             ),
                                             autofocus: false,
                                             controller: postAddress,
-                                            decoration:
-                                            InputDecoration(
+                                            decoration: InputDecoration(
                                               enabledBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
                                               focusedBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
-                                              hintText: 'House Number, Locality',
+                                              hintText:
+                                                  'House Number, Locality',
                                               hintStyle: TextStyle(
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                               ),
                                               labelText: 'Address',
                                               labelStyle: TextStyle(
                                                 color: Colors.indigo,
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -541,41 +538,39 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                             },
                                             style: TextStyle(
                                               fontSize:
-                                              formElementsSize(
-                                                  context),
+                                                  formElementsSize(context),
                                             ),
                                             autofocus: false,
                                             controller: roomDescription,
-                                            decoration:
-                                            InputDecoration(
+                                            decoration: InputDecoration(
                                               enabledBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
                                               focusedBorder:
-                                              const UnderlineInputBorder(
+                                                  const UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.indigo),
                                               ),
-                                              hintText: 'Facilities Available with Room',
+                                              hintText:
+                                                  'Facilities Available with Room',
                                               hintStyle: TextStyle(
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                               ),
                                               labelText: 'Room Description',
                                               labelStyle: TextStyle(
                                                 color: Colors.indigo,
                                                 fontSize:
-                                                formElementsSize(context),
+                                                    formElementsSize(context),
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
                                           ),
                                           Row(
                                             mainAxisAlignment:
-                                            MainAxisAlignment
-                                                .spaceBetween,
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               TextFormField(
                                                 validator: (value) {
@@ -588,41 +583,38 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                 },
                                                 style: TextStyle(
                                                   fontSize:
-                                                  formElementsSize(
-                                                      context),
+                                                      formElementsSize(context),
                                                 ),
                                                 autofocus: false,
                                                 keyboardType:
-                                                TextInputType
-                                                    .number,
+                                                    TextInputType.number,
                                                 controller: postPinCode,
-                                                decoration:
-                                                InputDecoration(
-                                                  constraints: BoxConstraints
-                                                      .tightFor(
-                                                      width: displayWidth(
-                                                          context) *
-                                                          0.4),
+                                                decoration: InputDecoration(
+                                                  constraints:
+                                                      BoxConstraints.tightFor(
+                                                          width: displayWidth(
+                                                                  context) *
+                                                              0.4),
                                                   enabledBorder:
-                                                  const UnderlineInputBorder(
+                                                      const UnderlineInputBorder(
                                                     borderSide: BorderSide(
                                                         color: Colors.indigo),
                                                   ),
                                                   focusedBorder:
-                                                  const UnderlineInputBorder(
+                                                      const UnderlineInputBorder(
                                                     borderSide: BorderSide(
                                                         color: Colors.indigo),
                                                   ),
                                                   hintText: '474001',
                                                   hintStyle: TextStyle(
-                                                    fontSize:
-                                                    formElementsSize(context),
+                                                    fontSize: formElementsSize(
+                                                        context),
                                                   ),
                                                   labelText: 'PinCode',
                                                   labelStyle: TextStyle(
                                                     color: Colors.indigo,
-                                                    fontSize:
-                                                    formElementsSize(context),
+                                                    fontSize: formElementsSize(
+                                                        context),
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                 ),
@@ -632,8 +624,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                   if (value == null ||
                                                       value.isEmpty) {
                                                     return "Number of Beds Can't be Empty";
-                                                  } else if (int.parse(
-                                                      value) <=
+                                                  } else if (int.parse(value) <=
                                                       0) {
                                                     return "Should have atleast 1 bed";
                                                   } else {
@@ -642,37 +633,38 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                 },
                                                 style: TextStyle(
                                                   fontSize:
-                                                  formElementsSize(
-                                                      context),
+                                                      formElementsSize(context),
                                                 ),
                                                 autofocus: false,
                                                 controller: postBeds,
+                                                keyboardType:
+                                                    TextInputType.number,
                                                 decoration: InputDecoration(
-                                                  constraints: BoxConstraints
-                                                      .tightFor(
-                                                      width: displayWidth(
-                                                          context) *
-                                                          0.4),
+                                                  constraints:
+                                                      BoxConstraints.tightFor(
+                                                          width: displayWidth(
+                                                                  context) *
+                                                              0.4),
                                                   enabledBorder:
-                                                  const UnderlineInputBorder(
+                                                      const UnderlineInputBorder(
                                                     borderSide: BorderSide(
                                                         color: Colors.indigo),
                                                   ),
                                                   focusedBorder:
-                                                  const UnderlineInputBorder(
+                                                      const UnderlineInputBorder(
                                                     borderSide: BorderSide(
                                                         color: Colors.indigo),
                                                   ),
                                                   hintText: '1',
                                                   hintStyle: TextStyle(
-                                                    fontSize:
-                                                    formElementsSize(context),
+                                                    fontSize: formElementsSize(
+                                                        context),
                                                   ),
                                                   labelText: 'Beds',
                                                   labelStyle: TextStyle(
                                                     color: Colors.indigo,
-                                                    fontSize:
-                                                    formElementsSize(context),
+                                                    fontSize: formElementsSize(
+                                                        context),
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                 ),
@@ -681,60 +673,53 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                           ),
                                           Row(
                                             mainAxisAlignment:
-                                            MainAxisAlignment
-                                                .spaceBetween,
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               TextFormField(
                                                 validator: (value) {
                                                   if (value == null ||
                                                       value.isEmpty) {
                                                     return "Cant be Empty";
-                                                  }
-                                                  else if( value == '0' )
-                                                  {
+                                                  } else if (value == '0') {
                                                     return 'Can\'t be Zero';
-                                                  }
-                                                  else {
+                                                  } else {
                                                     return null;
                                                   }
                                                 },
                                                 style: TextStyle(
                                                   fontSize:
-                                                  formElementsSize(
-                                                      context),
+                                                      formElementsSize(context),
                                                 ),
                                                 autofocus: false,
                                                 keyboardType:
-                                                TextInputType
-                                                    .number,
+                                                    TextInputType.number,
                                                 controller: kitchenCount,
-                                                decoration:
-                                                InputDecoration(
-                                                  constraints: BoxConstraints
-                                                      .tightFor(
-                                                      width: displayWidth(
-                                                          context) *
-                                                          0.4),
+                                                decoration: InputDecoration(
+                                                  constraints:
+                                                      BoxConstraints.tightFor(
+                                                          width: displayWidth(
+                                                                  context) *
+                                                              0.4),
                                                   enabledBorder:
-                                                  const UnderlineInputBorder(
+                                                      const UnderlineInputBorder(
                                                     borderSide: BorderSide(
                                                         color: Colors.indigo),
                                                   ),
                                                   focusedBorder:
-                                                  const UnderlineInputBorder(
+                                                      const UnderlineInputBorder(
                                                     borderSide: BorderSide(
                                                         color: Colors.indigo),
                                                   ),
                                                   hintText: '2',
                                                   hintStyle: TextStyle(
-                                                    fontSize:
-                                                    formElementsSize(context),
+                                                    fontSize: formElementsSize(
+                                                        context),
                                                   ),
                                                   labelText: 'Kitchen',
                                                   labelStyle: TextStyle(
                                                     color: Colors.indigo,
-                                                    fontSize:
-                                                    formElementsSize(context),
+                                                    fontSize: formElementsSize(
+                                                        context),
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                 ),
@@ -744,52 +729,46 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                   if (value == null ||
                                                       value.isEmpty) {
                                                     return "Cant be Empty";
-                                                  }
-                                                  else if( value == '0' )
-                                                  {
+                                                  } else if (value == '0') {
                                                     return 'Can\'t be Zero';
-                                                  }
-                                                  else {
+                                                  } else {
                                                     return null;
                                                   }
                                                 },
                                                 style: TextStyle(
                                                   fontSize:
-                                                  formElementsSize(
-                                                      context),
+                                                      formElementsSize(context),
                                                 ),
                                                 autofocus: false,
                                                 keyboardType:
-                                                TextInputType
-                                                    .number,
+                                                    TextInputType.number,
                                                 controller: latBathCount,
-                                                decoration:
-                                                InputDecoration(
-                                                  constraints: BoxConstraints
-                                                      .tightFor(
-                                                      width: displayWidth(
-                                                          context) *
-                                                          0.4),
+                                                decoration: InputDecoration(
+                                                  constraints:
+                                                      BoxConstraints.tightFor(
+                                                          width: displayWidth(
+                                                                  context) *
+                                                              0.4),
                                                   enabledBorder:
-                                                  const UnderlineInputBorder(
+                                                      const UnderlineInputBorder(
                                                     borderSide: BorderSide(
                                                         color: Colors.indigo),
                                                   ),
                                                   focusedBorder:
-                                                  const UnderlineInputBorder(
+                                                      const UnderlineInputBorder(
                                                     borderSide: BorderSide(
                                                         color: Colors.indigo),
                                                   ),
                                                   hintText: '2',
                                                   hintStyle: TextStyle(
-                                                    fontSize:
-                                                    formElementsSize(context),
+                                                    fontSize: formElementsSize(
+                                                        context),
                                                   ),
                                                   labelText: 'Washroom',
                                                   labelStyle: TextStyle(
                                                     color: Colors.indigo,
-                                                    fontSize:
-                                                    formElementsSize(context),
+                                                    fontSize: formElementsSize(
+                                                        context),
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                 ),
@@ -798,16 +777,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                           ),
                                           Row(
                                             mainAxisAlignment:
-                                            MainAxisAlignment
-                                                .spaceBetween,
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               TextFormField(
                                                 validator: (value) {
                                                   if (value == null ||
                                                       value.isEmpty) {
                                                     return "Price Can't be Empty";
-                                                  } else if (int.parse(
-                                                      value) <=
+                                                  } else if (int.parse(value) <=
                                                       0) {
                                                     return "Price should be Greater than 0";
                                                   } else {
@@ -816,40 +793,40 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                 },
                                                 style: TextStyle(
                                                   fontSize:
-                                                  formElementsSize(
-                                                      context),
+                                                      formElementsSize(context),
                                                 ),
                                                 autofocus: false,
                                                 controller: postPrice,
-                                                decoration:
-                                                InputDecoration(
-                                                  constraints: BoxConstraints
-                                                      .tightFor(
-                                                      width: displayWidth(
-                                                          context) *
-                                                          0.4),
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                decoration: InputDecoration(
+                                                  constraints:
+                                                      BoxConstraints.tightFor(
+                                                          width: displayWidth(
+                                                                  context) *
+                                                              0.4),
                                                   prefixText: "\u20B9",
                                                   suffixText: "/Month",
                                                   hintText: '4500',
                                                   labelText: 'Price',
                                                   enabledBorder:
-                                                  const UnderlineInputBorder(
+                                                      const UnderlineInputBorder(
                                                     borderSide: BorderSide(
                                                         color: Colors.indigo),
                                                   ),
                                                   focusedBorder:
-                                                  const UnderlineInputBorder(
+                                                      const UnderlineInputBorder(
                                                     borderSide: BorderSide(
                                                         color: Colors.indigo),
                                                   ),
                                                   hintStyle: TextStyle(
-                                                    fontSize:
-                                                    formElementsSize(context),
+                                                    fontSize: formElementsSize(
+                                                        context),
                                                   ),
                                                   labelStyle: TextStyle(
                                                     color: Colors.indigo,
-                                                    fontSize:
-                                                    formElementsSize(context),
+                                                    fontSize: formElementsSize(
+                                                        context),
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                 ),
@@ -859,53 +836,47 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                   if (value == null ||
                                                       value.isEmpty) {
                                                     return "Cant be Empty";
-                                                  }
-                                                  else if( value == '0' )
-                                                  {
+                                                  } else if (value == '0') {
                                                     return 'Can\'t be Zero';
-                                                  }
-                                                  else {
+                                                  } else {
                                                     return null;
                                                   }
                                                 },
                                                 style: TextStyle(
                                                   fontSize:
-                                                  formElementsSize(
-                                                      context),
+                                                      formElementsSize(context),
                                                 ),
                                                 autofocus: false,
                                                 keyboardType:
-                                                TextInputType
-                                                    .number,
+                                                    TextInputType.number,
                                                 controller: areaOfRoom,
-                                                decoration:
-                                                InputDecoration(
-                                                  constraints: BoxConstraints
-                                                      .tightFor(
-                                                      width: displayWidth(
-                                                          context) *
-                                                          0.4),
+                                                decoration: InputDecoration(
+                                                  constraints:
+                                                      BoxConstraints.tightFor(
+                                                          width: displayWidth(
+                                                                  context) *
+                                                              0.4),
                                                   enabledBorder:
-                                                  const UnderlineInputBorder(
+                                                      const UnderlineInputBorder(
                                                     borderSide: BorderSide(
                                                         color: Colors.indigo),
                                                   ),
                                                   focusedBorder:
-                                                  const UnderlineInputBorder(
+                                                      const UnderlineInputBorder(
                                                     borderSide: BorderSide(
                                                         color: Colors.indigo),
                                                   ),
                                                   hintText: '500',
                                                   suffixText: "Sq. ft",
                                                   hintStyle: TextStyle(
-                                                    fontSize:
-                                                    formElementsSize(context),
+                                                    fontSize: formElementsSize(
+                                                        context),
                                                   ),
                                                   labelText: 'Room Area',
                                                   labelStyle: TextStyle(
                                                     color: Colors.indigo,
-                                                    fontSize:
-                                                    formElementsSize(context),
+                                                    fontSize: formElementsSize(
+                                                        context),
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                 ),
@@ -914,30 +885,25 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                           ),
                                           Row(
                                             mainAxisAlignment:
-                                            MainAxisAlignment
-                                                .spaceBetween,
+                                                MainAxisAlignment.spaceBetween,
                                             crossAxisAlignment:
-                                            CrossAxisAlignment
-                                                .center,
+                                                CrossAxisAlignment.center,
                                             children: [
                                               Text(
                                                 'Is Room Furnished?',
                                                 style: TextStyle(
-                                                    fontSize:
-                                                    formElementsSize(
+                                                    fontSize: formElementsSize(
                                                         context),
                                                     color: isFurnished
                                                         ? Colors.indigo
-                                                        : Colors.grey
-                                                        .shade600),
+                                                        : Colors.grey.shade600),
                                               ),
                                               Switch(
                                                 value: isFurnished,
                                                 onChanged: (value) =>
                                                     setState(() {
-                                                      isFurnished =
-                                                      !isFurnished;
-                                                    }),
+                                                  isFurnished = !isFurnished;
+                                                }),
                                               ),
                                             ],
                                           ),
@@ -979,51 +945,43 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                 MainAxisAlignment.spaceEvenly,
                                             children: [
                                               ElevatedButton(
-                                                style: ElevatedButton
-                                                    .styleFrom(
-                                                  primary:
-                                                  darkBlueColor,
+                                                style: ElevatedButton.styleFrom(
+                                                  primary: darkBlueColor,
                                                   shape: RoundedRectangleBorder(
                                                       borderRadius:
-                                                      BorderRadius
-                                                          .circular(
-                                                          10)),
+                                                          BorderRadius.circular(
+                                                              10)),
                                                 ),
                                                 onPressed: () {
                                                   setState(() {
                                                     chooseImage();
                                                   });
                                                 },
-                                                child:  Text(
+                                                child: Text(
                                                   'Add Images',
                                                   style: TextStyle(
-                                                    fontSize:
-                                                    formElementsSize(
+                                                    fontSize: formElementsSize(
                                                         context),
                                                   ),
                                                 ),
                                               ),
                                               ElevatedButton(
-                                                style: ElevatedButton
-                                                    .styleFrom(
-                                                  primary:
-                                                  darkBlueColor,
+                                                style: ElevatedButton.styleFrom(
+                                                  primary: darkBlueColor,
                                                   shape: RoundedRectangleBorder(
                                                       borderRadius:
-                                                      BorderRadius
-                                                          .circular(
-                                                          10)),
+                                                          BorderRadius.circular(
+                                                              10)),
                                                 ),
                                                 onPressed: () {
                                                   setState(() {
                                                     autoFillLocation();
                                                   });
                                                 },
-                                                child:  Text(
+                                                child: Text(
                                                   'Fill Location',
                                                   style: TextStyle(
-                                                    fontSize:
-                                                    formElementsSize(
+                                                    fontSize: formElementsSize(
                                                         context),
                                                   ),
                                                 ),
@@ -1031,21 +989,21 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                             ],
                                           ),
                                           ElevatedButton(
-                                            style: ElevatedButton
-                                                .styleFrom(
+                                            style: ElevatedButton.styleFrom(
                                               primary: darkBlueColor,
-                                              shape:
-                                              RoundedRectangleBorder(
+                                              shape: RoundedRectangleBorder(
                                                   borderRadius:
-                                                  BorderRadius
-                                                      .circular(
-                                                      10)),
+                                                      BorderRadius.circular(
+                                                          10)),
                                             ),
                                             onPressed: () {
                                               setState(() {
                                                 validatePost();
                                                 if (isValid) {
-                                                  uploadRoomFile().whenComplete(
+                                                  uploadRoomFile(
+                                                          currentUserProfile[0]!
+                                                              .belogsTo)
+                                                      .whenComplete(
                                                     () => Navigator
                                                         .pushReplacement(
                                                       context,
@@ -1057,11 +1015,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                 }
                                               });
                                             },
-                                            child: Text('Upload',
+                                            child: Text(
+                                              'Upload',
                                               style: TextStyle(
                                                 fontSize:
-                                                formElementsSize(
-                                                    context),
+                                                    formElementsSize(context),
                                               ),
                                             ),
                                           ),
@@ -1095,29 +1053,34 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                     ),
                                                     autofocus: false,
                                                     controller: postRoomType,
-                                                    decoration:
-                                                    InputDecoration(
+                                                    decoration: InputDecoration(
                                                       enabledBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
                                                       focusedBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
-                                                      hintText: 'Single Room / Double Room',
+                                                      hintText:
+                                                          'Single Room / Double Room',
                                                       hintStyle: TextStyle(
                                                         fontSize:
-                                                        formElementsSize(context),
+                                                            formElementsSize(
+                                                                context),
                                                       ),
                                                       labelText: 'Room Type',
                                                       labelStyle: TextStyle(
                                                         color: Colors.indigo,
                                                         fontSize:
-                                                        formElementsSize(context),
-                                                        fontWeight: FontWeight.w500,
+                                                            formElementsSize(
+                                                                context),
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
                                                   ),
@@ -1137,29 +1100,33 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                     ),
                                                     autofocus: false,
                                                     controller: postOwnerName,
-                                                    decoration:
-                                                    InputDecoration(
+                                                    decoration: InputDecoration(
                                                       enabledBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
                                                       focusedBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
                                                       hintText: 'Owner\'s Name',
                                                       hintStyle: TextStyle(
                                                         fontSize:
-                                                        formElementsSize(context),
+                                                            formElementsSize(
+                                                                context),
                                                       ),
                                                       labelText: 'Owner',
                                                       labelStyle: TextStyle(
                                                         color: Colors.indigo,
                                                         fontSize:
-                                                        formElementsSize(context),
-                                                        fontWeight: FontWeight.w500,
+                                                            formElementsSize(
+                                                                context),
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
                                                   ),
@@ -1179,29 +1146,33 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                     ),
                                                     autofocus: false,
                                                     controller: tenantName,
-                                                    decoration:
-                                                    InputDecoration(
+                                                    decoration: InputDecoration(
                                                       enabledBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
                                                       focusedBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
                                                       hintText: 'Alex',
                                                       hintStyle: TextStyle(
                                                         fontSize:
-                                                        formElementsSize(context),
+                                                            formElementsSize(
+                                                                context),
                                                       ),
                                                       labelText: 'Your Name',
                                                       labelStyle: TextStyle(
                                                         color: Colors.indigo,
                                                         fontSize:
-                                                        formElementsSize(context),
-                                                        fontWeight: FontWeight.w500,
+                                                            formElementsSize(
+                                                                context),
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
                                                   ),
@@ -1228,28 +1199,39 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                           controller:
                                                               postOwnerContact,
                                                           decoration:
-                                                          InputDecoration(
+                                                              InputDecoration(
                                                             enabledBorder:
-                                                            const UnderlineInputBorder(
+                                                                const UnderlineInputBorder(
                                                               borderSide: BorderSide(
-                                                                  color: Colors.indigo),
+                                                                  color: Colors
+                                                                      .indigo),
                                                             ),
                                                             focusedBorder:
-                                                            const UnderlineInputBorder(
+                                                                const UnderlineInputBorder(
                                                               borderSide: BorderSide(
-                                                                  color: Colors.indigo),
+                                                                  color: Colors
+                                                                      .indigo),
                                                             ),
-                                                            hintText: 'Owner\'s Contact Number ',
-                                                            hintStyle: TextStyle(
+                                                            hintText:
+                                                                'Owner\'s Contact Number ',
+                                                            hintStyle:
+                                                                TextStyle(
                                                               fontSize:
-                                                              formElementsSize(context),
+                                                                  formElementsSize(
+                                                                      context),
                                                             ),
-                                                            labelText: 'Contact',
-                                                            labelStyle: TextStyle(
-                                                              color: Colors.indigo,
+                                                            labelText:
+                                                                'Contact',
+                                                            labelStyle:
+                                                                TextStyle(
+                                                              color:
+                                                                  Colors.indigo,
                                                               fontSize:
-                                                              formElementsSize(context),
-                                                              fontWeight: FontWeight.w500,
+                                                                  formElementsSize(
+                                                                      context),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
                                                             ),
                                                           ),
                                                         )
@@ -1274,28 +1256,39 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                           controller:
                                                               tenantContact,
                                                           decoration:
-                                                          InputDecoration(
+                                                              InputDecoration(
                                                             enabledBorder:
-                                                            const UnderlineInputBorder(
+                                                                const UnderlineInputBorder(
                                                               borderSide: BorderSide(
-                                                                  color: Colors.indigo),
+                                                                  color: Colors
+                                                                      .indigo),
                                                             ),
                                                             focusedBorder:
-                                                            const UnderlineInputBorder(
+                                                                const UnderlineInputBorder(
                                                               borderSide: BorderSide(
-                                                                  color: Colors.indigo),
+                                                                  color: Colors
+                                                                      .indigo),
                                                             ),
-                                                            hintText: 'Your Contact Number',
-                                                            hintStyle: TextStyle(
+                                                            hintText:
+                                                                'Your Contact Number',
+                                                            hintStyle:
+                                                                TextStyle(
                                                               fontSize:
-                                                              formElementsSize(context),
+                                                                  formElementsSize(
+                                                                      context),
                                                             ),
-                                                            labelText: 'Contact',
-                                                            labelStyle: TextStyle(
-                                                              color: Colors.indigo,
+                                                            labelText:
+                                                                'Contact',
+                                                            labelStyle:
+                                                                TextStyle(
+                                                              color:
+                                                                  Colors.indigo,
                                                               fontSize:
-                                                              formElementsSize(context),
-                                                              fontWeight: FontWeight.w500,
+                                                                  formElementsSize(
+                                                                      context),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
                                                             ),
                                                           ),
                                                         ),
@@ -1315,29 +1308,33 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                     ),
                                                     autofocus: false,
                                                     controller: postCity,
-                                                    decoration:
-                                                    InputDecoration(
+                                                    decoration: InputDecoration(
                                                       enabledBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
                                                       focusedBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
                                                       hintText: 'Delhi',
                                                       hintStyle: TextStyle(
                                                         fontSize:
-                                                        formElementsSize(context),
+                                                            formElementsSize(
+                                                                context),
                                                       ),
                                                       labelText: 'City',
                                                       labelStyle: TextStyle(
                                                         color: Colors.indigo,
                                                         fontSize:
-                                                        formElementsSize(context),
-                                                        fontWeight: FontWeight.w500,
+                                                            formElementsSize(
+                                                                context),
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
                                                   ),
@@ -1357,29 +1354,34 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                     ),
                                                     autofocus: false,
                                                     controller: postState,
-                                                    decoration:
-                                                    InputDecoration(
+                                                    decoration: InputDecoration(
                                                       enabledBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
                                                       focusedBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
-                                                      hintText: 'Madhya Pradesh',
+                                                      hintText:
+                                                          'Madhya Pradesh',
                                                       hintStyle: TextStyle(
                                                         fontSize:
-                                                        formElementsSize(context),
+                                                            formElementsSize(
+                                                                context),
                                                       ),
                                                       labelText: 'State',
                                                       labelStyle: TextStyle(
                                                         color: Colors.indigo,
                                                         fontSize:
-                                                        formElementsSize(context),
-                                                        fontWeight: FontWeight.w500,
+                                                            formElementsSize(
+                                                                context),
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
                                                   ),
@@ -1399,29 +1401,34 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                     ),
                                                     autofocus: false,
                                                     controller: postAddress,
-                                                    decoration:
-                                                    InputDecoration(
+                                                    decoration: InputDecoration(
                                                       enabledBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
                                                       focusedBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
-                                                      hintText: 'House Number, Locality',
+                                                      hintText:
+                                                          'House Number, Locality',
                                                       hintStyle: TextStyle(
                                                         fontSize:
-                                                        formElementsSize(context),
+                                                            formElementsSize(
+                                                                context),
                                                       ),
                                                       labelText: 'Address',
                                                       labelStyle: TextStyle(
                                                         color: Colors.indigo,
                                                         fontSize:
-                                                        formElementsSize(context),
-                                                        fontWeight: FontWeight.w500,
+                                                            formElementsSize(
+                                                                context),
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
                                                   ),
@@ -1436,34 +1443,40 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                     },
                                                     style: TextStyle(
                                                       fontSize:
-                                                      formElementsSize(
-                                                          context),
+                                                          formElementsSize(
+                                                              context),
                                                     ),
                                                     autofocus: false,
                                                     controller: roomDescription,
-                                                    decoration:
-                                                    InputDecoration(
+                                                    decoration: InputDecoration(
                                                       enabledBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
                                                       focusedBorder:
-                                                      const UnderlineInputBorder(
+                                                          const UnderlineInputBorder(
                                                         borderSide: BorderSide(
-                                                            color: Colors.indigo),
+                                                            color:
+                                                                Colors.indigo),
                                                       ),
-                                                      hintText: 'Facilities Available with Room',
+                                                      hintText:
+                                                          'Facilities Available with Room',
                                                       hintStyle: TextStyle(
                                                         fontSize:
-                                                        formElementsSize(context),
+                                                            formElementsSize(
+                                                                context),
                                                       ),
-                                                      labelText: 'Room Description',
+                                                      labelText:
+                                                          'Room Description',
                                                       labelStyle: TextStyle(
                                                         color: Colors.indigo,
                                                         fontSize:
-                                                        formElementsSize(context),
-                                                        fontWeight: FontWeight.w500,
+                                                            formElementsSize(
+                                                                context),
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
                                                   ),
@@ -1492,33 +1505,41 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                                 .number,
                                                         controller: postPinCode,
                                                         decoration:
-                                                        InputDecoration(
-                                                            constraints: BoxConstraints
-                                                                .tightFor(
-                                                                    width: displayWidth(
-                                                                            context) *
-                                                                        0.4),
+                                                            InputDecoration(
+                                                          constraints: BoxConstraints
+                                                              .tightFor(
+                                                                  width: displayWidth(
+                                                                          context) *
+                                                                      0.4),
                                                           enabledBorder:
-                                                          const UnderlineInputBorder(
-                                                            borderSide: BorderSide(
-                                                                color: Colors.indigo),
+                                                              const UnderlineInputBorder(
+                                                            borderSide:
+                                                                BorderSide(
+                                                                    color: Colors
+                                                                        .indigo),
                                                           ),
                                                           focusedBorder:
-                                                          const UnderlineInputBorder(
-                                                            borderSide: BorderSide(
-                                                                color: Colors.indigo),
+                                                              const UnderlineInputBorder(
+                                                            borderSide:
+                                                                BorderSide(
+                                                                    color: Colors
+                                                                        .indigo),
                                                           ),
                                                           hintText: '474001',
                                                           hintStyle: TextStyle(
                                                             fontSize:
-                                                            formElementsSize(context),
+                                                                formElementsSize(
+                                                                    context),
                                                           ),
                                                           labelText: 'PinCode',
                                                           labelStyle: TextStyle(
-                                                            color: Colors.indigo,
+                                                            color:
+                                                                Colors.indigo,
                                                             fontSize:
-                                                            formElementsSize(context),
-                                                            fontWeight: FontWeight.w500,
+                                                                formElementsSize(
+                                                                    context),
+                                                            fontWeight:
+                                                                FontWeight.w500,
                                                           ),
                                                         ),
                                                       ),
@@ -1542,33 +1563,45 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                         ),
                                                         autofocus: false,
                                                         controller: postBeds,
-                                                        decoration: InputDecoration(
+                                                        keyboardType:
+                                                            TextInputType
+                                                                .number,
+                                                        decoration:
+                                                            InputDecoration(
                                                           constraints: BoxConstraints
                                                               .tightFor(
-                                                              width: displayWidth(
-                                                                  context) *
-                                                                  0.4),
+                                                                  width: displayWidth(
+                                                                          context) *
+                                                                      0.4),
                                                           enabledBorder:
-                                                          const UnderlineInputBorder(
-                                                            borderSide: BorderSide(
-                                                                color: Colors.indigo),
+                                                              const UnderlineInputBorder(
+                                                            borderSide:
+                                                                BorderSide(
+                                                                    color: Colors
+                                                                        .indigo),
                                                           ),
                                                           focusedBorder:
-                                                          const UnderlineInputBorder(
-                                                            borderSide: BorderSide(
-                                                                color: Colors.indigo),
+                                                              const UnderlineInputBorder(
+                                                            borderSide:
+                                                                BorderSide(
+                                                                    color: Colors
+                                                                        .indigo),
                                                           ),
                                                           hintText: '1',
                                                           hintStyle: TextStyle(
                                                             fontSize:
-                                                            formElementsSize(context),
+                                                                formElementsSize(
+                                                                    context),
                                                           ),
                                                           labelText: 'Beds',
                                                           labelStyle: TextStyle(
-                                                            color: Colors.indigo,
+                                                            color:
+                                                                Colors.indigo,
                                                             fontSize:
-                                                            formElementsSize(context),
-                                                            fontWeight: FontWeight.w500,
+                                                                formElementsSize(
+                                                                    context),
+                                                            fontWeight:
+                                                                FontWeight.w500,
                                                           ),
                                                         ),
                                                       ),
@@ -1576,61 +1609,68 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                   ),
                                                   Row(
                                                     mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
                                                     children: [
                                                       TextFormField(
                                                         validator: (value) {
                                                           if (value == null ||
                                                               value.isEmpty) {
                                                             return "Cant be Empty";
-                                                          }
-                                                          else if( value == '0' )
-                                                            {
-                                                              return 'Can\'t be Zero';
-                                                            }
-                                                          else {
+                                                          } else if (value ==
+                                                              '0') {
+                                                            return 'Can\'t be Zero';
+                                                          } else {
                                                             return null;
                                                           }
                                                         },
                                                         style: TextStyle(
                                                           fontSize:
-                                                          formElementsSize(
-                                                              context),
+                                                              formElementsSize(
+                                                                  context),
                                                         ),
                                                         autofocus: false,
                                                         keyboardType:
-                                                        TextInputType
-                                                            .number,
-                                                        controller: kitchenCount,
+                                                            TextInputType
+                                                                .number,
+                                                        controller:
+                                                            kitchenCount,
                                                         decoration:
-                                                        InputDecoration(
+                                                            InputDecoration(
                                                           constraints: BoxConstraints
                                                               .tightFor(
-                                                              width: displayWidth(
-                                                                  context) *
-                                                                  0.4),
+                                                                  width: displayWidth(
+                                                                          context) *
+                                                                      0.4),
                                                           enabledBorder:
-                                                          const UnderlineInputBorder(
-                                                            borderSide: BorderSide(
-                                                                color: Colors.indigo),
+                                                              const UnderlineInputBorder(
+                                                            borderSide:
+                                                                BorderSide(
+                                                                    color: Colors
+                                                                        .indigo),
                                                           ),
                                                           focusedBorder:
-                                                          const UnderlineInputBorder(
-                                                            borderSide: BorderSide(
-                                                                color: Colors.indigo),
+                                                              const UnderlineInputBorder(
+                                                            borderSide:
+                                                                BorderSide(
+                                                                    color: Colors
+                                                                        .indigo),
                                                           ),
                                                           hintText: '2',
                                                           hintStyle: TextStyle(
                                                             fontSize:
-                                                            formElementsSize(context),
+                                                                formElementsSize(
+                                                                    context),
                                                           ),
                                                           labelText: 'Kitchen',
                                                           labelStyle: TextStyle(
-                                                            color: Colors.indigo,
+                                                            color:
+                                                                Colors.indigo,
                                                             fontSize:
-                                                            formElementsSize(context),
-                                                            fontWeight: FontWeight.w500,
+                                                                formElementsSize(
+                                                                    context),
+                                                            fontWeight:
+                                                                FontWeight.w500,
                                                           ),
                                                         ),
                                                       ),
@@ -1639,53 +1679,60 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                           if (value == null ||
                                                               value.isEmpty) {
                                                             return "Cant be Empty";
-                                                          }
-                                                          else if( value == '0' )
-                                                          {
+                                                          } else if (value ==
+                                                              '0') {
                                                             return 'Can\'t be Zero';
-                                                          }
-                                                          else {
+                                                          } else {
                                                             return null;
                                                           }
                                                         },
                                                         style: TextStyle(
                                                           fontSize:
-                                                          formElementsSize(
-                                                              context),
+                                                              formElementsSize(
+                                                                  context),
                                                         ),
                                                         autofocus: false,
                                                         keyboardType:
-                                                        TextInputType
-                                                            .number,
-                                                        controller: latBathCount,
+                                                            TextInputType
+                                                                .number,
+                                                        controller:
+                                                            latBathCount,
                                                         decoration:
-                                                        InputDecoration(
+                                                            InputDecoration(
                                                           constraints: BoxConstraints
                                                               .tightFor(
-                                                              width: displayWidth(
-                                                                  context) *
-                                                                  0.4),
+                                                                  width: displayWidth(
+                                                                          context) *
+                                                                      0.4),
                                                           enabledBorder:
-                                                          const UnderlineInputBorder(
-                                                            borderSide: BorderSide(
-                                                                color: Colors.indigo),
+                                                              const UnderlineInputBorder(
+                                                            borderSide:
+                                                                BorderSide(
+                                                                    color: Colors
+                                                                        .indigo),
                                                           ),
                                                           focusedBorder:
-                                                          const UnderlineInputBorder(
-                                                            borderSide: BorderSide(
-                                                                color: Colors.indigo),
+                                                              const UnderlineInputBorder(
+                                                            borderSide:
+                                                                BorderSide(
+                                                                    color: Colors
+                                                                        .indigo),
                                                           ),
                                                           hintText: '2',
                                                           hintStyle: TextStyle(
                                                             fontSize:
-                                                            formElementsSize(context),
+                                                                formElementsSize(
+                                                                    context),
                                                           ),
                                                           labelText: 'Washroom',
                                                           labelStyle: TextStyle(
-                                                            color: Colors.indigo,
+                                                            color:
+                                                                Colors.indigo,
                                                             fontSize:
-                                                            formElementsSize(context),
-                                                            fontWeight: FontWeight.w500,
+                                                                formElementsSize(
+                                                                    context),
+                                                            fontWeight:
+                                                                FontWeight.w500,
                                                           ),
                                                         ),
                                                       ),
@@ -1693,8 +1740,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                   ),
                                                   Row(
                                                     mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
                                                     children: [
                                                       TextFormField(
                                                         validator: (value) {
@@ -1702,7 +1749,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                               value.isEmpty) {
                                                             return "Price Can't be Empty";
                                                           } else if (int.parse(
-                                                              value) <=
+                                                                  value) <=
                                                               0) {
                                                             return "Price should be Greater than 0";
                                                           } else {
@@ -1711,42 +1758,53 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                         },
                                                         style: TextStyle(
                                                           fontSize:
-                                                          formElementsSize(
-                                                              context),
+                                                              formElementsSize(
+                                                                  context),
                                                         ),
                                                         autofocus: false,
                                                         controller: postPrice,
+                                                        keyboardType:
+                                                            TextInputType
+                                                                .number,
                                                         decoration:
-                                                         InputDecoration(
+                                                            InputDecoration(
                                                           constraints: BoxConstraints
                                                               .tightFor(
-                                                              width: displayWidth(
-                                                                  context) *
-                                                                  0.4),
+                                                                  width: displayWidth(
+                                                                          context) *
+                                                                      0.4),
                                                           prefixText: "\u20B9",
                                                           suffixText: "/Month",
                                                           hintText: '4500',
                                                           labelText: 'Price',
-                                                           enabledBorder:
-                                                           const UnderlineInputBorder(
-                                                             borderSide: BorderSide(
-                                                                 color: Colors.indigo),
-                                                           ),
-                                                           focusedBorder:
-                                                           const UnderlineInputBorder(
-                                                             borderSide: BorderSide(
-                                                                 color: Colors.indigo),
-                                                           ),
-                                                           hintStyle: TextStyle(
-                                                             fontSize:
-                                                             formElementsSize(context),
-                                                           ),
-                                                           labelStyle: TextStyle(
-                                                             color: Colors.indigo,
-                                                             fontSize:
-                                                             formElementsSize(context),
-                                                             fontWeight: FontWeight.w500,
-                                                           ),
+                                                          enabledBorder:
+                                                              const UnderlineInputBorder(
+                                                            borderSide:
+                                                                BorderSide(
+                                                                    color: Colors
+                                                                        .indigo),
+                                                          ),
+                                                          focusedBorder:
+                                                              const UnderlineInputBorder(
+                                                            borderSide:
+                                                                BorderSide(
+                                                                    color: Colors
+                                                                        .indigo),
+                                                          ),
+                                                          hintStyle: TextStyle(
+                                                            fontSize:
+                                                                formElementsSize(
+                                                                    context),
+                                                          ),
+                                                          labelStyle: TextStyle(
+                                                            color:
+                                                                Colors.indigo,
+                                                            fontSize:
+                                                                formElementsSize(
+                                                                    context),
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
                                                         ),
                                                       ),
                                                       TextFormField(
@@ -1754,54 +1812,61 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                           if (value == null ||
                                                               value.isEmpty) {
                                                             return "Cant be Empty";
-                                                          }
-                                                          else if( value == '0' )
-                                                          {
+                                                          } else if (value ==
+                                                              '0') {
                                                             return 'Can\'t be Zero';
-                                                          }
-                                                          else {
+                                                          } else {
                                                             return null;
                                                           }
                                                         },
                                                         style: TextStyle(
                                                           fontSize:
-                                                          formElementsSize(
-                                                              context),
+                                                              formElementsSize(
+                                                                  context),
                                                         ),
                                                         autofocus: false,
                                                         keyboardType:
-                                                        TextInputType
-                                                            .number,
+                                                            TextInputType
+                                                                .number,
                                                         controller: areaOfRoom,
                                                         decoration:
-                                                        InputDecoration(
+                                                            InputDecoration(
                                                           constraints: BoxConstraints
                                                               .tightFor(
-                                                              width: displayWidth(
-                                                                  context) *
-                                                                  0.4),
+                                                                  width: displayWidth(
+                                                                          context) *
+                                                                      0.4),
                                                           enabledBorder:
-                                                          const UnderlineInputBorder(
-                                                            borderSide: BorderSide(
-                                                                color: Colors.indigo),
+                                                              const UnderlineInputBorder(
+                                                            borderSide:
+                                                                BorderSide(
+                                                                    color: Colors
+                                                                        .indigo),
                                                           ),
                                                           focusedBorder:
-                                                          const UnderlineInputBorder(
-                                                            borderSide: BorderSide(
-                                                                color: Colors.indigo),
+                                                              const UnderlineInputBorder(
+                                                            borderSide:
+                                                                BorderSide(
+                                                                    color: Colors
+                                                                        .indigo),
                                                           ),
                                                           hintText: '500',
                                                           suffixText: "Sq. ft",
                                                           hintStyle: TextStyle(
                                                             fontSize:
-                                                            formElementsSize(context),
+                                                                formElementsSize(
+                                                                    context),
                                                           ),
-                                                          labelText: 'Room Area',
+                                                          labelText:
+                                                              'Room Area',
                                                           labelStyle: TextStyle(
-                                                            color: Colors.indigo,
+                                                            color:
+                                                                Colors.indigo,
                                                             fontSize:
-                                                            formElementsSize(context),
-                                                            fontWeight: FontWeight.w500,
+                                                                formElementsSize(
+                                                                    context),
+                                                            fontWeight:
+                                                                FontWeight.w500,
                                                           ),
                                                         ),
                                                       ),
@@ -1814,53 +1879,69 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                           width: 0,
                                                         )
                                                       : TextFormField(
-                                                    validator: (value) {
-                                                      if (value == null ||
-                                                          value.isEmpty) {
-                                                        return "Price Can't be Empty";
-                                                      } else if (int.parse(
-                                                          value) <=
-                                                          0) {
-                                                        return "Price should be Greater than 0";
-                                                      } else {
-                                                        return null;
-                                                      }
-                                                    },
-                                                    style: TextStyle(
-                                                      fontSize:
-                                                      formElementsSize(
-                                                          context),
-                                                    ),
-                                                    autofocus: false,
-                                                    controller: perPersonPrice,
-                                                    decoration:
-                                                    InputDecoration(
-                                                      prefixText: "\u20B9",
-                                                      suffixText: "/Person",
-                                                      hintText: '4500',
-                                                      labelText: 'Per Person Price',
-                                                      enabledBorder:
-                                                      const UnderlineInputBorder(
-                                                        borderSide: BorderSide(
-                                                            color: Colors.indigo),
-                                                      ),
-                                                      focusedBorder:
-                                                      const UnderlineInputBorder(
-                                                        borderSide: BorderSide(
-                                                            color: Colors.indigo),
-                                                      ),
-                                                      hintStyle: TextStyle(
-                                                        fontSize:
-                                                        formElementsSize(context),
-                                                      ),
-                                                      labelStyle: TextStyle(
-                                                        color: Colors.indigo,
-                                                        fontSize:
-                                                        formElementsSize(context),
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ),
+                                                          validator: (value) {
+                                                            if (value == null ||
+                                                                value.isEmpty) {
+                                                              return "Price Can't be Empty";
+                                                            } else if (int.parse(
+                                                                    value) <=
+                                                                0) {
+                                                              return "Price should be Greater than 0";
+                                                            } else {
+                                                              return null;
+                                                            }
+                                                          },
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                formElementsSize(
+                                                                    context),
+                                                          ),
+                                                          autofocus: false,
+                                                          controller:
+                                                              perPersonPrice,
+                                                          keyboardType:
+                                                              TextInputType
+                                                                  .number,
+                                                          decoration:
+                                                              InputDecoration(
+                                                            prefixText:
+                                                                "\u20B9",
+                                                            suffixText:
+                                                                "/Person",
+                                                            hintText: '4500',
+                                                            labelText:
+                                                                'Per Person Price',
+                                                            enabledBorder:
+                                                                const UnderlineInputBorder(
+                                                              borderSide: BorderSide(
+                                                                  color: Colors
+                                                                      .indigo),
+                                                            ),
+                                                            focusedBorder:
+                                                                const UnderlineInputBorder(
+                                                              borderSide: BorderSide(
+                                                                  color: Colors
+                                                                      .indigo),
+                                                            ),
+                                                            hintStyle:
+                                                                TextStyle(
+                                                              fontSize:
+                                                                  formElementsSize(
+                                                                      context),
+                                                            ),
+                                                            labelStyle:
+                                                                TextStyle(
+                                                              color:
+                                                                  Colors.indigo,
+                                                              fontSize:
+                                                                  formElementsSize(
+                                                                      context),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                          ),
+                                                        ),
                                                   Row(
                                                     mainAxisAlignment:
                                                         MainAxisAlignment
@@ -1950,12 +2031,12 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                             chooseImage();
                                                           });
                                                         },
-                                                        child:  Text(
-                                                            'Add Images',
+                                                        child: Text(
+                                                          'Add Images',
                                                           style: TextStyle(
                                                             fontSize:
-                                                            formElementsSize(
-                                                                context),
+                                                                formElementsSize(
+                                                                    context),
                                                           ),
                                                         ),
                                                       ),
@@ -1975,12 +2056,12 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                             autoFillLocation();
                                                           });
                                                         },
-                                                        child:  Text(
-                                                            'Fill Location',
+                                                        child: Text(
+                                                          'Fill Location',
                                                           style: TextStyle(
                                                             fontSize:
-                                                            formElementsSize(
-                                                                context),
+                                                                formElementsSize(
+                                                                    context),
                                                           ),
                                                         ),
                                                       ),
@@ -2021,7 +2102,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                                               currentUserProfile[
                                                                       0]!
                                                                   .belogsTo);
-                                                          uploadRoommateFile()
+                                                          uploadRoommateFile(
+                                                                  currentUserProfile[
+                                                                          0]!
+                                                                      .belogsTo)
                                                               .whenComplete(
                                                             () => Navigator
                                                                 .pushReplacement(
