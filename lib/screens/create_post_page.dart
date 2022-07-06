@@ -8,9 +8,7 @@ import 'package:room_rental_app/models/location.dart';
 import 'package:room_rental_app/models/our_user.dart';
 import 'package:room_rental_app/models/post_data.dart';
 import 'package:room_rental_app/models/roommate_post.dart';
-import 'package:room_rental_app/screens/all_room_post_page.dart';
 import 'package:room_rental_app/services/database_firestore.dart';
-import 'package:room_rental_app/services/firebase_auth.dart';
 import 'package:room_rental_app/services/location_services.dart';
 import 'package:room_rental_app/utils/constants.dart';
 import 'package:room_rental_app/utils/customised_app_bar.dart';
@@ -19,7 +17,6 @@ import 'package:room_rental_app/utils/loading.dart';
 import 'package:room_rental_app/utils/provider_location.dart';
 import 'package:room_rental_app/utils/wrapper.dart';
 
-import 'home_page.dart';
 
 class CreatePostPage extends StatefulWidget {
   CreatePostPage({Key? key}) : super(key: key);
