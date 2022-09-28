@@ -940,7 +940,7 @@ class _PostDetailsState extends State<PostDetails> {
                                       ),
                                     ),
                                     GestureDetector(
-                                      onTap: () async {
+                                      onTap: widget.postData!.isBooked ? () {} : () async {
                                         String orderId = await generateOrderId(
                                             'rzp_test_aYUsHRU8Tw0TUR',
                                             'bei0tYPuwzvqpxo16LIFPL0w',

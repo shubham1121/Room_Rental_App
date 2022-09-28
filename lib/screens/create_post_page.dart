@@ -123,7 +123,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
   }
 
   Future<File?> cropSquareImage(File imageFile) async {
-    File? croppedFile = await ImageCropper.cropImage(
+    File? croppedFile = await ImageCropper().cropImage(
       sourcePath: imageFile.path,
       aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
       aspectRatioPresets: [CropAspectRatioPreset.square],
